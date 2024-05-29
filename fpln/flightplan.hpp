@@ -13,16 +13,18 @@ namespace test
 {
     constexpr size_t N_FPL_LEG_CACHE_SZ = 200;
     constexpr size_t N_FPL_SEG_CACHE_SZ = 100;
+    constexpr size_t N_FPL_REF_SZ = 9;
 
     enum fpl_segment_types
     {
-        FPL_SEG_SID = 0,
-        FPL_SEG_SID_TRANS = 1,
-        FPL_SEG_ENRT = 2,
-        FPL_SEG_STAR_TRANS = 3,
-        FPL_SEG_STAR = 4,
-        FPL_SEG_APPCH_TRANS = 5,
-        FPL_SEG_APPCH = 6
+        FPL_SEG_DEP_RWY = 1,
+        FPL_SEG_SID = FPL_SEG_DEP_RWY + 1,
+        FPL_SEG_SID_TRANS = FPL_SEG_SID + 1,
+        FPL_SEG_ENRT = FPL_SEG_SID_TRANS + 1,
+        FPL_SEG_STAR_TRANS = FPL_SEG_ENRT + 1,
+        FPL_SEG_STAR = FPL_SEG_STAR_TRANS + 1,
+        FPL_SEG_APPCH_TRANS = FPL_SEG_STAR + 1,
+        FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
     };
 
     struct leg_list_data_t;
@@ -40,14 +42,18 @@ namespace test
     {
         libnav::arinc_leg_t leg;
         bool is_discon;
-        fpl_seg_t *seg;
+        struct_util::list_node_t<fpl_seg_t> *seg;
     };
 
     struct fpl_ref_t
     {
         std::string name;
-        struct_util::list_node_t<leg_list_data_t> *ptr;
+        struct_util::list_node_t<fpl_seg_t> *ptr;
     };
+
+    
+    static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode;
+    static const struct fpl_ref_t EmptyRef;
 
 
     class FlightPlan
@@ -68,9 +74,9 @@ namespace test
 
         std::string get_arr_icao();
 
-        //std::vector<std::string> get_dep_rwys();
+        std::vector<std::string> get_dep_rwys();
 
-        //std::vector<std::string> get_arr_rwys();
+        std::vector<std::string> get_arr_rwys();
 
         //bool set_dep_rwy(std::string& rwy);
 
@@ -89,7 +95,8 @@ namespace test
 
         libnav::Airport *departure, *arrival;
 
-        std::string dep_rwy;
+        std::vector<fpl_ref_t> fpl_refs;
+        //fpl_ref_t dep_rwy;
         //std::string sid_name;
         //fpl_ref_t sid_trans;
         //fpl_ref_t enrt;
@@ -110,5 +117,10 @@ namespace test
         void reset_fpln();
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
+
+        void delete_between(leg_list_node_t* start, leg_list_node_t* end);
+
+        void add_segment(std::vector<libnav::arinc_leg_t>& legs, fpl_segment_types seg_tp,
+            std::string seg_name);
     };
 };
