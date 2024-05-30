@@ -100,6 +100,12 @@ namespace test
     {
         leg_list.release_all(leg_data_stack.ptr_stack);
         seg_list.release_all(seg_stack.ptr_stack);
+
+        for(size_t i = 0; i < N_FPL_REF_SZ; i++)
+        {
+            fpl_refs[i].name = "";
+            fpl_refs[i].ptr = nullptr;
+        }
     }
 
     libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
@@ -131,12 +137,73 @@ namespace test
 
     void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
     {
-        leg_list_node_t* curr = start->next;
-        seg_list_node_t* curr_seg = curr->data.seg;
-        
+        start->next = end;
+        end->prev = start;
+        leg_list_node_t *curr = start->next;
+        leg_list_node_t *next = curr->next;
+
+        while (curr != end)
+        {
+            seg_list_node_t *curr_seg = curr->data.seg;
+            if(curr_seg != next->data.seg && curr_seg != start->data.seg)
+            {
+                if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
+                {
+                    seg_list_node_t *prev_seg = curr->data.seg->prev;
+                    if(prev_seg->data.seg_type != curr_seg->data.seg_type)
+                    {
+                        fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
+                    }
+                    else
+                    {
+                        fpl_refs[curr_seg->data.seg_type].ptr = prev_seg;
+                    }
+                }
+                *curr_seg = EmptySeg;
+                seg_list.pop(curr_seg, seg_stack.ptr_stack);
+            }
+            *curr = EmptyNode;
+            leg_list.pop(curr, leg_data_stack.ptr_stack);
+            curr = next;
+            next = curr->next;
+        }
+    }
+
+    void FlightPlan::delete_segment(seg_list_node_t *seg)
+    {
+        leg_list_node_t *start = seg->prev->data.end;
+        leg_list_node_t *end = seg->data.end->next;
+        delete_between(start, end);
     }
 
     void FlightPlan::add_segment(std::vector<libnav::arinc_leg_t>& legs, 
+        fpl_segment_types seg_tp, std::string seg_name, seg_list_node_t *next)
+    {
+        seg_list_node_t *prev = next->prev;
+        leg_list_node_t *next_leg = prev->data.end->next;
+
+        seg_list_node_t *seg_add = seg_stack.ptr_stack.top();
+        seg_stack.ptr_stack.pop();
+
+        seg_add->data.name = seg_name;
+        seg_add->data.seg_type = seg_tp;
+
+        for(size_t i = 0; i < legs.size(); i++)
+        {
+            leg_list_node_t *leg_add = leg_data_stack.ptr_stack.top();
+            leg_data_stack.ptr_stack.pop();
+            leg_add->data.seg = seg_add;
+            leg_add->data.leg = legs[i];
+
+            leg_list.insert_before(next_leg, leg_add);
+        }
+
+        seg_add->data.end = next_leg->prev;
+
+        seg_list.insert_before(next, seg_add);
+    }
+
+    void FlightPlan::add_legs(std::vector<libnav::arinc_leg_t>& legs, 
         fpl_segment_types seg_tp, std::string seg_name)
     {
         if(departure == nullptr || arrival == nullptr || 
@@ -145,9 +212,23 @@ namespace test
             return;
         }
         size_t ref_idx = size_t(seg_tp);
+        seg_list_node_t *ins_seg;
         if(fpl_refs[seg_tp].ptr != nullptr && seg_tp != FPL_SEG_ENRT)
         {
-
+            seg_list_node_t *curr = fpl_refs[seg_tp].ptr;
+            seg_list_node_t *prev = curr->prev;
+            ins_seg = curr->next;
+            while (curr->data.seg_type == seg_tp)
+            {
+                delete_segment(curr);
+                curr = prev;
+                prev = curr->prev;
+            }
+            fpl_refs[seg_tp].ptr = nullptr;
+            fpl_refs[seg_tp].name = seg_name;
         }
+
+        add_segment(legs, seg_tp, seg_name, ins_seg);
+        fpl_refs[seg_tp].ptr = ins_seg->prev;
     }
 } // namespace test

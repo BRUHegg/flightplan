@@ -14,6 +14,7 @@ int main()
 
     while(1)
 	{
+		std::cout << ">> ";
 		std::string in_raw;
 		std::getline(std::cin, in_raw);
 		

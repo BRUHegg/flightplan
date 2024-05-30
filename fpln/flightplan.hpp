@@ -53,6 +53,7 @@ namespace test
 
     
     static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode;
+    static const struct struct_util::list_node_t<fpl_seg_t> EmptySeg;
     static const struct fpl_ref_t EmptyRef;
 
 
@@ -118,9 +119,14 @@ namespace test
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
 
-        void delete_between(leg_list_node_t* start, leg_list_node_t* end);
+        void delete_between(leg_list_node_t *start, leg_list_node_t *end);
+
+        void delete_segment(seg_list_node_t *seg);
 
         void add_segment(std::vector<libnav::arinc_leg_t>& legs, fpl_segment_types seg_tp,
+            std::string seg_name, seg_list_node_t *next);
+
+        void add_legs(std::vector<libnav::arinc_leg_t>& legs, fpl_segment_types seg_tp,
             std::string seg_name);
     };
 };
