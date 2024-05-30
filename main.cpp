@@ -16,8 +16,9 @@ int main()
 		"addseg A 2 TAIL 1 2 3",
 		"addseg B 2 TAIL 4 5 6",
 		"addseg C 2 B 7 8 9",
-		"dbe 3 4",
-		"plegs"
+		"dbe 2 4",
+		"plegs",
+		"pseg"
 		};
 	//pre_exec = {};
 

@@ -191,15 +191,14 @@ namespace test
     {
         leg_list_node_t *curr = start->next;
         leg_list_node_t *next = curr->next;
-        //start->next = end;
-        //end->prev = start;
 
         while (curr != end)
         {
-            //seg_list_node_t *curr_seg = curr->data.seg;
-            /*
+            seg_list_node_t *curr_seg = curr->data.seg;
+            
             if(curr_seg != next->data.seg && curr_seg != start->data.seg)
             {
+                /*
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
                 {
                     seg_list_node_t *prev_seg = curr->data.seg->prev;
@@ -212,10 +211,15 @@ namespace test
                         fpl_refs[curr_seg->data.seg_type].ptr = prev_seg;
                     }
                 }
-                *curr_seg = EmptySeg;
+                */
                 seg_list.pop(curr_seg, seg_stack.ptr_stack);
+                *curr_seg = EmptySeg;
             }
-            */
+            else if(curr_seg != next->data.seg)
+            {
+                curr_seg->data.end = start;
+            }
+            
             leg_list.pop(curr, leg_data_stack.ptr_stack);
             *curr = EmptyNode;
             curr = next;
