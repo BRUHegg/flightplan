@@ -237,6 +237,16 @@ namespace test
         av->fpl->add_segment(legs, tp, in[0], next);
     }
 
+    inline void del_seg(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: <segment name>\n";
+        }
+        auto seg_mp = av->fpl->get_seg_map();
+        av->fpl->delete_segment(seg_mp[in[0]]);
+    }
+
     inline void delbe(Avionics* av, std::vector<std::string>& in)
     {
         auto leg_mp = av->fpl->get_leg_map();
@@ -276,6 +286,7 @@ namespace test
         {"setdep", set_fpl_dep},
         {"setarr", set_fpl_arr},
         {"addseg", add_seg},
+        {"delseg", del_seg},
         {"pseg", print_seg},
         {"plegs", print_legs},
         {"dbe", delbe}

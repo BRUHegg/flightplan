@@ -107,6 +107,24 @@ namespace test
         std::cout << "\n";
     }
 
+    void FlightPlan::print_refs()
+    {
+        for(size_t i = 1; i < fpl_refs.size(); i++)
+        {
+            std::cout << seg_to_str[fpl_segment_types(i)] << " ";
+            seg_list_node_t *curr = fpl_refs[i].ptr;
+            if(curr != nullptr)
+            {
+                std::cout << "Segment " << curr->data.name << " " << curr->data.seg_type << "\n";
+                std::cout << "End leg: " << curr->data.end->data.leg << "\n";
+            }
+            else
+            {
+                std::cout << "\n";
+            }
+        }
+    }
+
     FlightPlan::leg_map_t FlightPlan::get_leg_map()
     {
         leg_map_t out;

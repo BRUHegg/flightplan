@@ -28,6 +28,8 @@ namespace test
         FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
     };
 
+    
+
     struct leg_list_data_t;
 
     struct fpl_seg_t
@@ -88,6 +90,8 @@ namespace test
 
         void print_legs();
 
+        void print_refs();
+
         leg_map_t get_leg_map();
 
         seg_map_t get_seg_map();
@@ -110,6 +114,17 @@ namespace test
         ~FlightPlan();
 
     private:
+        std::map<fpl_segment_types, std::string> seg_to_str = {
+            {FPL_SEG_DEP_RWY, "DEP RWY"},
+            {FPL_SEG_SID, "SID"},
+            {FPL_SEG_SID_TRANS, "SID TRANS"},
+            {FPL_SEG_ENRT, "ENROUTE"},
+            {FPL_SEG_STAR_TRANS, "STAR TRANS"},
+            {FPL_SEG_STAR, "STAR"},
+            {FPL_SEG_APPCH_TRANS, "APPR TRANS"},
+            {FPL_SEG_APPCH, "APPR"}
+        };
+
         std::shared_ptr<libnav::ArptDB> arpt_db;
         std::shared_ptr<libnav::NavaidDB> navaid_db;
         std::string cifp_dir_path;
