@@ -6,6 +6,7 @@
 #include <libnav/hold_db.hpp>
 #include <libnav/awy_db.hpp>
 #include <mutex>
+#include <map>
 #include "linked_list.hpp"
 
 
@@ -40,7 +41,7 @@ namespace test
 
     struct leg_list_data_t
     {
-        libnav::arinc_leg_t leg;
+        int leg;
         bool is_discon;
         struct_util::list_node_t<fpl_seg_t> *seg;
     };
@@ -52,16 +53,20 @@ namespace test
     };
 
     
-    static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode;
-    static const struct struct_util::list_node_t<fpl_seg_t> EmptySeg;
-    static const struct fpl_ref_t EmptyRef;
+    static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode = 
+        {nullptr, nullptr, {}};
+    static const struct struct_util::list_node_t<fpl_seg_t> EmptySeg = 
+        {nullptr, nullptr, {}};
+    static const struct fpl_ref_t EmptyRef = {"", nullptr};
 
+    typedef struct_util::list_node_t<leg_list_data_t> leg_list_node_t;
+    typedef struct_util::list_node_t<fpl_seg_t> seg_list_node_t;
 
     class FlightPlan
     {
         typedef std::unordered_map<std::string, std::set<std::string>> str_set_map_t;
-        typedef struct_util::list_node_t<leg_list_data_t> leg_list_node_t;
-        typedef struct_util::list_node_t<fpl_seg_t> seg_list_node_t;
+        typedef std::map<int, leg_list_node_t*> leg_map_t;
+        typedef std::map<std::string, seg_list_node_t*> seg_map_t;
 
     public:
         FlightPlan(std::shared_ptr<libnav::ArptDB> apt_db, 
@@ -78,6 +83,21 @@ namespace test
         std::vector<std::string> get_dep_rwys();
 
         std::vector<std::string> get_arr_rwys();
+
+        void print_seg();
+
+        void print_legs();
+
+        leg_map_t get_leg_map();
+
+        seg_map_t get_seg_map();
+
+        void delete_between(leg_list_node_t *start, leg_list_node_t *end);
+
+        void delete_segment(seg_list_node_t *seg);
+
+        void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
+            std::string seg_name, seg_list_node_t *next);
 
         //bool set_dep_rwy(std::string& rwy);
 
@@ -119,14 +139,9 @@ namespace test
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
 
-        void delete_between(leg_list_node_t *start, leg_list_node_t *end);
+        
 
-        void delete_segment(seg_list_node_t *seg);
-
-        void add_segment(std::vector<libnav::arinc_leg_t>& legs, fpl_segment_types seg_tp,
-            std::string seg_name, seg_list_node_t *next);
-
-        void add_legs(std::vector<libnav::arinc_leg_t>& legs, fpl_segment_types seg_tp,
+        void add_legs(std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name);
     };
 };

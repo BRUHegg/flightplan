@@ -11,6 +11,8 @@ namespace struct_util
     {
         list_node_t *prev, *next;
         T data;
+
+        list_node_t() = default;
     };
 
     template <class T>
@@ -90,6 +92,7 @@ namespace struct_util
     {
         node_insert->prev = node->prev;
         node_insert->next = node;
+        node->prev->next = node_insert;
         node->prev = node_insert;
         size++;
     }

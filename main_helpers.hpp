@@ -218,6 +218,45 @@ namespace test
         }
     }
 
+    inline void add_seg(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size() < 4)
+        {
+            std::cout << "Command expects 4 arguments: <seg name>, <seg type>, <next>, <legs>\n";
+            return;
+        }
+
+        auto seg_mp = av->fpl->get_seg_map();
+        fpl_segment_types tp = fpl_segment_types(strutils::stoi_with_strip(in[1]));
+        seg_list_node_t *next = seg_mp[in[2]];
+        std::vector<int> legs;
+        for(size_t i = 3; i < in.size(); i++)
+        {
+            legs.push_back(strutils::stoi_with_strip(in[i])); //addseg A 2 TAIL 1 2 3
+        }
+        av->fpl->add_segment(legs, tp, in[0], next);
+    }
+
+    inline void print_seg(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size())
+        {
+            std::cout << "Too many arguments provided\n";
+            return;
+        }
+        av->fpl->print_seg();
+    }
+
+    inline void print_legs(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size())
+        {
+            std::cout << "Too many arguments provided\n";
+            return;
+        }
+        av->fpl->print_legs();
+    }
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
@@ -226,6 +265,9 @@ namespace test
         {"q", quit},
         {"fplinfo", fplinfo},
         {"setdep", set_fpl_dep},
-        {"setarr", set_fpl_arr}
+        {"setarr", set_fpl_arr},
+        {"addseg", add_seg},
+        {"pseg", print_seg},
+        {"plegs", print_legs}
         };
 }

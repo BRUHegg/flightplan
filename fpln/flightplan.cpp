@@ -1,5 +1,5 @@
 #include "flightplan.hpp"
-#include "linked_list.hpp"
+#include <iostream>
 
 
 namespace test
@@ -83,6 +83,58 @@ namespace test
             return arrival->get_rwys();
         }
         return {};
+    }
+
+    void FlightPlan::print_seg()
+    {
+        seg_list_node_t *curr = seg_list.head.next;
+        while(curr != &seg_list.tail)
+        {
+            std::cout << "Segment " << curr->data.name << " " << curr->data.seg_type << "\n";
+            std::cout << "End leg: " << curr->data.end->data.leg << "\n";
+            curr = curr->next;
+        }
+    }
+
+    void FlightPlan::print_legs()
+    {
+        leg_list_node_t *curr = leg_list.head.next;
+        while(curr != &leg_list.tail)
+        {
+            std::cout << curr->data.leg << " ";
+            curr = curr->next;
+        }
+        std::cout << "\n";
+    }
+
+    FlightPlan::leg_map_t FlightPlan::get_leg_map()
+    {
+        leg_map_t out;
+        out[-1] = &leg_list.head;
+        out[-2] = &leg_list.tail;
+        leg_list_node_t *curr = leg_list.head.next;
+        while(curr != &leg_list.tail)
+        {
+            out[curr->data.leg] = curr;
+            curr = curr->next;
+        }
+
+        return out;
+    }
+
+    FlightPlan::seg_map_t FlightPlan::get_seg_map()
+    {
+        seg_map_t out;
+        out["HEAD"] = &seg_list.head;
+        out["TAIL"] = &seg_list.tail;
+        seg_list_node_t *curr = seg_list.head.next;
+        while(curr != &seg_list.tail)
+        {
+            out[curr->data.name] = curr;
+            curr = curr->next;
+        }
+
+        return out;
     }
 
     FlightPlan::~FlightPlan()
@@ -176,7 +228,7 @@ namespace test
         delete_between(start, end);
     }
 
-    void FlightPlan::add_segment(std::vector<libnav::arinc_leg_t>& legs, 
+    void FlightPlan::add_segment(std::vector<int>& legs, 
         fpl_segment_types seg_tp, std::string seg_name, seg_list_node_t *next)
     {
         seg_list_node_t *prev = next->prev;
@@ -203,15 +255,19 @@ namespace test
         seg_list.insert_before(next, seg_add);
     }
 
-    void FlightPlan::add_legs(std::vector<libnav::arinc_leg_t>& legs, 
+    void FlightPlan::add_legs(std::vector<int>& legs, 
         fpl_segment_types seg_tp, std::string seg_name)
     {
-        if(departure == nullptr || arrival == nullptr || 
-            seg_tp == 0 || size_t(seg_tp) >= fpl_refs.size())
+        //if(departure == nullptr || arrival == nullptr || 
+        //    seg_tp == 0 || size_t(seg_tp) >= fpl_refs.size())
+        //{
+        //    return;
+        //}
+        if(seg_tp == 0 || size_t(seg_tp) >= fpl_refs.size())
         {
             return;
         }
-        size_t ref_idx = size_t(seg_tp);
+        //size_t ref_idx = size_t(seg_tp);
         seg_list_node_t *ins_seg;
         if(fpl_refs[seg_tp].ptr != nullptr && seg_tp != FPL_SEG_ENRT)
         {
