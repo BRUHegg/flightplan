@@ -103,6 +103,9 @@ namespace test
         void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next);
 
+        void add_legs(std::vector<int>& legs, fpl_segment_types seg_tp,
+            std::string seg_name);
+
         //bool set_dep_rwy(std::string& rwy);
 
         //std::string get_dep_rwy();
@@ -153,10 +156,5 @@ namespace test
         void reset_fpln();
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
-
-        
-
-        void add_legs(std::vector<int>& legs, fpl_segment_types seg_tp,
-            std::string seg_name);
     };
 };

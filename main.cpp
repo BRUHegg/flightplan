@@ -13,14 +13,14 @@ int main()
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
-		"addseg A 2 TAIL 1 2 3",
-		"addseg B 2 TAIL 4 5 6",
-		"addseg C 2 B 7 8 9",
+		"addlegs RW10 1 1",
+		"addlegs NOB 2 2 3 4",
 		//"dbe 2 4",
 		"plegs",
-		"pseg"
+		"pseg",
+		"prefs"
 		};
-	//pre_exec = {};
+	pre_exec = {};
 
 	size_t i = 0;
 

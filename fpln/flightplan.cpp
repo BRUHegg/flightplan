@@ -216,7 +216,7 @@ namespace test
             
             if(curr_seg != next->data.seg && curr_seg != start->data.seg)
             {
-                /*
+                
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
                 {
                     seg_list_node_t *prev_seg = curr->data.seg->prev;
@@ -229,7 +229,7 @@ namespace test
                         fpl_refs[curr_seg->data.seg_type].ptr = prev_seg;
                     }
                 }
-                */
+                
                 seg_list.pop(curr_seg, seg_stack.ptr_stack);
                 *curr_seg = EmptySeg;
             }
@@ -291,11 +291,12 @@ namespace test
         {
             return;
         }
-        //size_t ref_idx = size_t(seg_tp);
+        
+        size_t ref_idx = size_t(seg_tp);
         seg_list_node_t *ins_seg;
-        if(fpl_refs[seg_tp].ptr != nullptr && seg_tp != FPL_SEG_ENRT)
+        if(fpl_refs[ref_idx].ptr != nullptr && seg_tp != FPL_SEG_ENRT)
         {
-            seg_list_node_t *curr = fpl_refs[seg_tp].ptr;
+            seg_list_node_t *curr = fpl_refs[ref_idx].ptr;
             seg_list_node_t *prev = curr->prev;
             ins_seg = curr->next;
             while (curr->data.seg_type == seg_tp)
@@ -304,8 +305,24 @@ namespace test
                 curr = prev;
                 prev = curr->prev;
             }
-            fpl_refs[seg_tp].ptr = nullptr;
-            fpl_refs[seg_tp].name = seg_name;
+            fpl_refs[ref_idx].ptr = nullptr;
+            //fpl_refs[ref_idx].name = seg_name;
+        }
+        else if(fpl_refs[ref_idx].ptr == nullptr)
+        {
+            while(ref_idx > 0)
+            {
+                ref_idx--;
+                if(fpl_refs[ref_idx].ptr != nullptr)
+                {
+                    ins_seg = fpl_refs[ref_idx].ptr->next;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            ins_seg = fpl_refs[ref_idx].ptr->next;
         }
 
         add_segment(legs, seg_tp, seg_name, ins_seg);
