@@ -237,6 +237,15 @@ namespace test
         av->fpl->add_segment(legs, tp, in[0], next);
     }
 
+    inline void delbe(Avionics* av, std::vector<std::string>& in)
+    {
+        auto leg_mp = av->fpl->get_leg_map();
+        int start = strutils::stoi_with_strip(in[0]);
+        int end = strutils::stoi_with_strip(in[1]);
+
+        av->fpl->delete_between(leg_mp[start], leg_mp[end]);
+    }
+
     inline void print_seg(Avionics* av, std::vector<std::string>& in)
     {
         if(in.size())
@@ -268,6 +277,7 @@ namespace test
         {"setarr", set_fpl_arr},
         {"addseg", add_seg},
         {"pseg", print_seg},
-        {"plegs", print_legs}
+        {"plegs", print_legs},
+        {"dbe", delbe}
         };
 }

@@ -22,7 +22,7 @@ namespace test
 
         fpl_refs = std::vector<fpl_ref_t>(N_FPL_REF_SZ, EmptyRef);
         fpl_refs[0].ptr = &seg_list.head;
-        seg_list.head.data.end = &leg_list.head;
+        seg_list.head.data.end = &leg_list.head; 
     }
 
     libnav::DbErr FlightPlan::set_dep(std::string icao)
@@ -189,14 +189,15 @@ namespace test
 
     void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
     {
-        start->next = end;
-        end->prev = start;
         leg_list_node_t *curr = start->next;
         leg_list_node_t *next = curr->next;
+        //start->next = end;
+        //end->prev = start;
 
         while (curr != end)
         {
-            seg_list_node_t *curr_seg = curr->data.seg;
+            //seg_list_node_t *curr_seg = curr->data.seg;
+            /*
             if(curr_seg != next->data.seg && curr_seg != start->data.seg)
             {
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
@@ -214,8 +215,9 @@ namespace test
                 *curr_seg = EmptySeg;
                 seg_list.pop(curr_seg, seg_stack.ptr_stack);
             }
-            *curr = EmptyNode;
+            */
             leg_list.pop(curr, leg_data_stack.ptr_stack);
+            *curr = EmptyNode;
             curr = next;
             next = curr->next;
         }

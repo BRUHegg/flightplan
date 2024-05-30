@@ -12,11 +12,31 @@ int main()
 		earth_nav_path+"earth_hold.dat", earth_nav_path+"CIFP");
 	std::cout << "Avionics loaded\n";
 
+	std::vector<std::string> pre_exec = {
+		"addseg A 2 TAIL 1 2 3",
+		"addseg B 2 TAIL 4 5 6",
+		"addseg C 2 B 7 8 9",
+		"dbe 3 4",
+		"plegs"
+		};
+	//pre_exec = {};
+
+	size_t i = 0;
+
     while(1)
 	{
-		std::cout << ">> ";
 		std::string in_raw;
-		std::getline(std::cin, in_raw);
+		if(i < pre_exec.size())
+		{
+			in_raw = pre_exec[i];
+			i++;
+		}
+		else
+		{
+			std::cout << ">> ";
+			std::getline(std::cin, in_raw);
+		}
+		
 		
 		std::string in_proc = strutils::strip(in_raw, ' ');
 
