@@ -295,7 +295,7 @@ namespace test
         {
             end = seg->data.end;
             seg->data.is_direct = true;
-            seg->data.name = "DCT";
+            seg->data.name = DCT_LEG_NAME;
         }
         else
         {
@@ -408,7 +408,7 @@ namespace test
         {
             std::vector<int> vec = {start};
             seg_list_node_t *tmp_seg = ins_seg->prev;
-            add_segment(vec, seg_tp, "DCT", ins_seg, true);
+            add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
             merge_seg(tmp_seg);
             legs_add = legs;
         }
