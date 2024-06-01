@@ -273,17 +273,19 @@ namespace test
     {
         if(in.size() < 3)
         {
-            std::cout << "Command expects 3 arguments: <seg name>, <seg type>, <legs>\n";
+            std::cout << "Command expects 4 arguments: <seg name>, <seg type>, \
+            <start leg>, <legs>\n";
             return;
         }
         fpl_segment_types tp = fpl_segment_types(strutils::stoi_with_strip(in[1]));
         std::vector<int> legs;
-        for(size_t i = 2; i < in.size(); i++)
+        int start = strutils::stoi_with_strip(in[2]);
+        for(size_t i = 3; i < in.size(); i++)
         {
             legs.push_back(strutils::stoi_with_strip(in[i]));
         }
 
-        av->fpl->add_legs(legs, tp, in[0]);
+        av->fpl->add_legs(start, legs, tp, in[0]);
     }
 
     inline void del_seg(Avionics* av, std::vector<std::string>& in)

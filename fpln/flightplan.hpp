@@ -142,11 +142,11 @@ namespace test
         void delete_segment(seg_list_node_t *seg, bool leave_seg=true);
 
         void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
-            std::string seg_name, seg_list_node_t *next);
+            std::string seg_name, seg_list_node_t *next, bool is_direct=false);
 
         void add_discon(seg_list_node_t *next);
 
-        void add_legs(std::vector<int>& legs, fpl_segment_types seg_tp,
+        void add_legs(int start, std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name);
 
         //bool set_dep_rwy(std::string& rwy);
