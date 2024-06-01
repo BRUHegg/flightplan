@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <stack>
+#include <mutex>
+#include <chrono>
 
 
 namespace struct_util
@@ -20,9 +22,13 @@ namespace struct_util
     {
         list_node_t<T> head, tail;
         std::size_t size;
+        std::chrono::time_point<std::chrono::steady_clock> start;
+        double id;
 
 
         linked_list_t();
+
+        list_node_t<T> get_node(list_node_t<T>* ptr);
 
         void push_front(list_node_t<T> *node);
 
@@ -40,6 +46,8 @@ namespace struct_util
         void pop(list_node_t<T> *node, std::stack<list_node_t<T>*>& release_stack);
 
         void release_all(std::stack<list_node_t<T>*>& release_stack);
+
+        void update_id();
     };
 
     template <class T>
@@ -67,6 +75,8 @@ namespace struct_util
         tail.next = nullptr;
 
         size = 0;
+        id = 0;
+        start = std::chrono::steady_clock::now();
     }
 
     template <class T>
@@ -76,6 +86,8 @@ namespace struct_util
         node->prev = &head;
         head.next = node;
         size++;
+
+        update_id();
     }
 
     template <class T>
@@ -85,6 +97,8 @@ namespace struct_util
         node->next = &tail;
         tail.prev = node;
         size++;
+
+        update_id();
     }
 
     template <class T>
@@ -95,6 +109,8 @@ namespace struct_util
         node->prev->next = node_insert;
         node->prev = node_insert;
         size++;
+
+        update_id();
     }
 
     template <class T>
@@ -108,6 +124,8 @@ namespace struct_util
             release_stack.push(node);
             size--;
         }
+
+        update_id();
     }
 
     template <class T>
@@ -122,6 +140,16 @@ namespace struct_util
         }
 
         size = 0;
+
+        update_id();
+    }
+
+    template <class T>
+    void linked_list_t<T>::update_id()
+    {
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<double> dur = now - start;
+        id = dur.count();
     }
 
     // ll_node_stack_t definitions:

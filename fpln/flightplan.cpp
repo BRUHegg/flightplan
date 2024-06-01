@@ -25,6 +25,68 @@ namespace test
         seg_list.head.data.end = &leg_list.head; 
     }
 
+    size_t FlightPlan::get_leg_list_sz()
+    {
+        return leg_list.size;
+    }
+
+    size_t FlightPlan::get_seg_list_sz()
+    {
+        return seg_list.size;
+    }
+
+    double FlightPlan::get_ll_seg(size_t start, size_t l, 
+            std::vector<list_node_ref_t<leg_list_data_t>>* out)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        if(start >= leg_list.size)
+        {
+            return -1;
+        }
+        size_t i = 0;
+        leg_list_node_t* curr = leg_list.head.next;
+        while(i != start)
+        {
+            curr = curr->next;
+            i++;
+        }
+
+        while(l && i < leg_list.size)
+        {
+            out->push_back({curr, curr->data});
+            l--;
+            curr = curr->next;
+        }
+
+        return leg_list.id;
+    }
+
+    double FlightPlan::get_sl_seg(size_t start, size_t l, 
+            std::vector<list_node_ref_t<fpl_seg_t>>* out)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        if(start >= seg_list.size)
+        {
+            return -1;
+        }
+        size_t i = 0;
+        seg_list_node_t* curr = seg_list.head.next;
+        while(i != start)
+        {
+            curr = curr->next;
+            i++;
+        }
+
+        while(l && i < seg_list.size)
+        {
+            out->push_back({curr, curr->data});
+            l--;
+            curr = curr->next;
+        }
+
+        return seg_list.id;
+    }
+
     libnav::DbErr FlightPlan::set_dep(std::string icao)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
@@ -83,28 +145,6 @@ namespace test
             return arrival->get_rwys();
         }
         return {};
-    }
-
-    void FlightPlan::print_seg()
-    {
-        seg_list_node_t *curr = seg_list.head.next;
-        while(curr != &seg_list.tail)
-        {
-            std::cout << "Segment " << curr->data.name << " " << curr->data.seg_type << "\n";
-            std::cout << "End leg: " << curr->data.end->data.leg << "\n";
-            curr = curr->next;
-        }
-    }
-
-    void FlightPlan::print_legs()
-    {
-        leg_list_node_t *curr = leg_list.head.next;
-        while(curr != &leg_list.tail)
-        {
-            std::cout << curr->data.leg << " ";
-            curr = curr->next;
-        }
-        std::cout << "\n";
     }
 
     void FlightPlan::print_refs()

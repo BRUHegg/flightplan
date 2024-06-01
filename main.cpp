@@ -20,7 +20,7 @@ int main()
 		"pseg",
 		"prefs"
 		};
-	pre_exec = {};
+	//pre_exec = {};
 
 	size_t i = 0;
 

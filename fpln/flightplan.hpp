@@ -28,13 +28,13 @@ namespace test
         FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
     };
 
-    
 
     struct leg_list_data_t;
 
     struct fpl_seg_t
     {
         bool direct;
+        bool is_disco;
         std::string name;
         fpl_segment_types seg_type;
 
@@ -53,6 +53,21 @@ namespace test
         std::string name;
         struct_util::list_node_t<fpl_seg_t> *ptr;
     };
+
+    template <class T>
+    struct list_node_ref_t
+    {
+        struct_util::list_node_t<T> *ptr;
+        T data;
+    };
+
+    template <class T>
+    struct timed_ptr_t
+    {
+        T* ptr;
+        double id;
+    };
+    
 
     
     static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode = 
@@ -74,6 +89,34 @@ namespace test
         FlightPlan(std::shared_ptr<libnav::ArptDB> apt_db, 
             std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path);
 
+        size_t get_leg_list_sz();
+
+        size_t get_seg_list_sz();
+
+        /*
+            Function: get_ll_seg
+            Description:
+            Returns a segment of leg list defined by start position and length.
+            @param start: start position
+            @param l: length
+            @param out: pointer to output vector
+        */
+
+        double get_ll_seg(size_t start, size_t l, 
+            std::vector<list_node_ref_t<leg_list_data_t>>* out);
+
+        /*
+            Function: get_sl_seg
+            Description:
+            Returns a segment of segment list defined by start position and length.
+            @param start: start position
+            @param l: length
+            @param out: pointer to output vector
+        */
+
+        double get_sl_seg(size_t start, size_t l, 
+            std::vector<list_node_ref_t<fpl_seg_t>>* out);
+
         libnav::DbErr set_dep(std::string icao);
 
         std::string get_dep_icao();
@@ -85,10 +128,6 @@ namespace test
         std::vector<std::string> get_dep_rwys();
 
         std::vector<std::string> get_arr_rwys();
-
-        void print_seg();
-
-        void print_legs();
 
         void print_refs();
 
@@ -157,4 +196,4 @@ namespace test
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
     };
-};
+}

@@ -17,6 +17,10 @@ namespace test
     public:
         double ac_lat;
         double ac_lon;
+        int legs_sbpg;
+
+        double leg_list_id;
+        double seg_list_id;
 
         std::shared_ptr<libnav::ArptDB> arpt_db_ptr;
         std::shared_ptr<libnav::NavaidDB> navaid_db_ptr;
@@ -39,11 +43,15 @@ namespace test
         {
             env_vars["ac_lat"] = strutils::double_to_str(def_lat, 8);
             env_vars["ac_lon"] = strutils::double_to_str(def_lon, 8);
+            env_vars["legs_sbpg"] = "0";
+            leg_list_id = -1;
+            seg_list_id = -1;
 
             cifp_dir_path = cifp_path;
 
             ac_lat = def_lat;
             ac_lon = def_lon;
+            legs_sbpg = 0;
 
             arpt_db_ptr = 
                 std::make_shared<libnav::ArptDB>(apt_dat, custom_apt, custom_rnw);
@@ -110,11 +118,16 @@ namespace test
         {
             bool lat_valid = strutils::is_numeric(env_vars["ac_lat"]);
             bool lon_valid = strutils::is_numeric(env_vars["ac_lon"]);
+            bool sbp_vaild = strutils::is_numeric(env_vars["legs_sbpg"]);
             
             if(lon_valid && lat_valid)
             {
                 ac_lat = std::stod(env_vars["ac_lat"]);
                 ac_lon = std::stod(env_vars["ac_lon"]);
+            }
+            if(sbp_vaild)
+            {
+                legs_sbpg = std::stoi(env_vars["legs_sbpg"]);
             }
         }
     };
@@ -259,6 +272,7 @@ namespace test
         if(in.size() != 1)
         {
             std::cout << "Command expects 1 argument: <segment name>\n";
+            return;
         }
         auto seg_mp = av->fpl->get_seg_map();
         av->fpl->delete_segment(seg_mp[in[0]]);
@@ -280,8 +294,22 @@ namespace test
             std::cout << "Too many arguments provided\n";
             return;
         }
-        av->fpl->print_seg();
+        std::vector<list_node_ref_t<fpl_seg_t>> scr_data;
+        size_t seg_sz = av->fpl->get_seg_list_sz();
+        av->seg_list_id = av->fpl->get_sl_seg(0, seg_sz, &scr_data);
+        size_t cnt = 1;
+        for(auto i: scr_data)
+        {
+            std::cout << cnt << ". Segment " << i.data.name << " " << 
+                i.data.seg_type << "\n";
+            std::cout << "End leg: " << i.data.end->data.leg << "\n";
+            cnt++;
+        }
+        
+        std::cout << "\n";
     }
+
+    // Print commands
 
     inline void print_legs(Avionics* av, std::vector<std::string>& in)
     {
@@ -290,7 +318,15 @@ namespace test
             std::cout << "Too many arguments provided\n";
             return;
         }
-        av->fpl->print_legs();
+        
+        std::vector<list_node_ref_t<leg_list_data_t>> scr_data;
+        size_t legs_sz = av->fpl->get_leg_list_sz();
+        av->leg_list_id = av->fpl->get_ll_seg(0, legs_sz, &scr_data);
+        for(auto i: scr_data)
+        {
+            std::cout << i.data.leg << " ";
+        }
+        std::cout << "\n";
     }
 
     inline void print_refs(Avionics* av, std::vector<std::string>& in)
@@ -301,6 +337,22 @@ namespace test
             return;
         }
         av->fpl->print_refs();
+    }
+
+    inline void print_cdu_legs(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size())
+        {
+            std::cout << "Too many arguments provided\n";
+            return;
+        }
+
+        std::vector<list_node_ref_t<leg_list_data_t>> scr_data;  // What's shown on CDU screen
+        av->leg_list_id = av->fpl->get_ll_seg(size_t(av->legs_sbpg) * 5, 5, &scr_data);
+        for(size_t i = 0; i < scr_data.size(); i++)
+        {
+            std::cout << scr_data[i].data.leg << "\n";
+        }
     }
 
     std::unordered_map<std::string, cmd> cmd_map = {
@@ -318,6 +370,7 @@ namespace test
         {"pseg", print_seg},
         {"plegs", print_legs},
         {"prefs", print_refs},
+        {"pcl", print_cdu_legs},
         {"dbe", delbe}
         };
 }
