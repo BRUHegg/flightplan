@@ -99,6 +99,24 @@ namespace test
             fpl = std::make_shared<FlightPlan>(arpt_db_ptr, navaid_db_ptr, cifp_dir_path);
         }
 
+        std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
+        {
+            std::vector<list_node_ref_t<fpl_seg_t>> scr_data;
+            size_t seg_sz = fpl->get_seg_list_sz();
+            seg_list_id = fpl->get_sl_seg(0, seg_sz, &scr_data);
+
+            return scr_data;
+        }
+
+        std::vector<list_node_ref_t<leg_list_data_t>> get_legs_list()
+        {
+            std::vector<list_node_ref_t<leg_list_data_t>> scr_data;
+            size_t legs_sz = fpl->get_leg_list_sz();
+            leg_list_id = fpl->get_ll_seg(0, legs_sz, &scr_data);
+
+            return scr_data;
+        }
+
         void update()
         {
             update_pos();
@@ -241,13 +259,14 @@ namespace test
 
         auto seg_mp = av->fpl->get_seg_map();
         fpl_segment_types tp = fpl_segment_types(strutils::stoi_with_strip(in[1]));
-        seg_list_node_t *next = seg_mp[in[2]];
+        auto seg_list = av->get_seg_list();
+        size_t idx = size_t(strutils::stoi_with_strip(in[2]));
         std::vector<int> legs;
         for(size_t i = 3; i < in.size(); i++)
         {
             legs.push_back(strutils::stoi_with_strip(in[i])); //addseg A 2 TAIL 1 2 3
         }
-        av->fpl->add_segment(legs, tp, in[0], next);
+        av->fpl->add_segment(legs, tp, in[0], seg_list[idx].ptr);
     }
 
     inline void add_legs(Avionics* av, std::vector<std::string>& in)
@@ -274,17 +293,19 @@ namespace test
             std::cout << "Command expects 1 argument: <segment name>\n";
             return;
         }
-        auto seg_mp = av->fpl->get_seg_map();
-        av->fpl->delete_segment(seg_mp[in[0]]);
+        auto seg_list = av->get_seg_list();
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        if(idx > 0 && idx < seg_list.size()-1)
+            av->fpl->delete_segment(seg_list[idx].ptr);
     }
 
     inline void delbe(Avionics* av, std::vector<std::string>& in)
     {
-        auto leg_mp = av->fpl->get_leg_map();
-        int start = strutils::stoi_with_strip(in[0]);
-        int end = strutils::stoi_with_strip(in[1]);
+        auto legs_list = av->get_legs_list();
+        size_t start = size_t(strutils::stoi_with_strip(in[0]));
+        size_t end = size_t(strutils::stoi_with_strip(in[1]));
 
-        av->fpl->delete_between(leg_mp[start], leg_mp[end]);
+        av->fpl->delete_between(legs_list[start].ptr, legs_list[end].ptr);
     }
 
     inline void print_seg(Avionics* av, std::vector<std::string>& in)
@@ -294,15 +315,14 @@ namespace test
             std::cout << "Too many arguments provided\n";
             return;
         }
-        std::vector<list_node_ref_t<fpl_seg_t>> scr_data;
-        size_t seg_sz = av->fpl->get_seg_list_sz();
-        av->seg_list_id = av->fpl->get_sl_seg(0, seg_sz, &scr_data);
+        auto seg_list = av->get_seg_list();
         size_t cnt = 1;
-        for(auto i: scr_data)
+        for(size_t i = 1; i < seg_list.size()-1; i++)
         {
-            std::cout << cnt << ". Segment " << i.data.name << " " << 
-                i.data.seg_type << "\n";
-            std::cout << "End leg: " << i.data.end->data.leg << "\n";
+            list_node_ref_t<fpl_seg_t> tmp = seg_list[i];
+            std::cout << cnt << ". Segment " << tmp.data.name << " " << 
+                tmp.data.seg_type << "\n";
+            std::cout << "End leg: " << tmp.data.end->data.leg << "\n";
             cnt++;
         }
         
@@ -319,12 +339,11 @@ namespace test
             return;
         }
         
-        std::vector<list_node_ref_t<leg_list_data_t>> scr_data;
-        size_t legs_sz = av->fpl->get_leg_list_sz();
-        av->leg_list_id = av->fpl->get_ll_seg(0, legs_sz, &scr_data);
-        for(auto i: scr_data)
+        auto legs = av->get_legs_list();
+        for(size_t i = 1; i < legs.size()-1; i++)
         {
-            std::cout << i.data.leg << " ";
+            list_node_ref_t<leg_list_data_t> tmp = legs[i];
+            std::cout << tmp.data.leg << " ";
         }
         std::cout << "\n";
     }

@@ -74,7 +74,7 @@ namespace struct_util
         tail.prev = &head;
         tail.next = nullptr;
 
-        size = 0;
+        size = 2;
         id = 0;
         start = std::chrono::steady_clock::now();
     }
@@ -139,7 +139,7 @@ namespace struct_util
             curr = curr->next;
         }
 
-        size = 0;
+        size = 2;
 
         update_id();
     }

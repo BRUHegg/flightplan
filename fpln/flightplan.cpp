@@ -44,7 +44,7 @@ namespace test
             return -1;
         }
         size_t i = 0;
-        leg_list_node_t* curr = leg_list.head.next;
+        leg_list_node_t* curr = &(leg_list.head);
         while(i != start)
         {
             curr = curr->next;
@@ -70,7 +70,7 @@ namespace test
             return -1;
         }
         size_t i = 0;
-        seg_list_node_t* curr = seg_list.head.next;
+        seg_list_node_t* curr = &(seg_list.head);
         while(i != start)
         {
             curr = curr->next;
