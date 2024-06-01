@@ -59,6 +59,8 @@ namespace struct_util
 
         ll_node_stack_t(std::size_t sz);
 
+        T* get_new();
+
         void destroy();
     };
 
@@ -163,6 +165,18 @@ namespace struct_util
             ptr_stack.push(nodes + i);
         }
     };
+
+    template <class T>
+    T* ll_node_stack_t<T>::get_new()
+    {
+        if(ptr_stack.size())
+        {   
+            T* out = ptr_stack.top();
+            ptr_stack.pop();
+            return out;
+        }
+        return nullptr;
+    }
 
     template <class T>
     void ll_node_stack_t<T>::destroy()

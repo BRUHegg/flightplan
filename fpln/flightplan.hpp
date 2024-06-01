@@ -25,7 +25,8 @@ namespace test
         FPL_SEG_STAR_TRANS = FPL_SEG_ENRT + 1,
         FPL_SEG_STAR = FPL_SEG_STAR_TRANS + 1,
         FPL_SEG_APPCH_TRANS = FPL_SEG_STAR + 1,
-        FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
+        FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1,
+        FPL_SEG_DISCON = FPL_SEG_APPCH + 1
     };
 
 
@@ -33,7 +34,7 @@ namespace test
 
     struct fpl_seg_t
     {
-        bool direct;
+        bool is_direct;
         bool is_disco;
         std::string name;
         fpl_segment_types seg_type;
@@ -195,5 +196,9 @@ namespace test
         void reset_fpln();
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
+
+        void add_singl_leg(leg_list_node_t *next, leg_list_data_t data);
+
+        void merge_seg(seg_list_node_t *tgt);
     };
 }

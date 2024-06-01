@@ -298,25 +298,35 @@ namespace test
         seg_list_node_t *prev = next->prev;
         leg_list_node_t *next_leg = prev->data.end->next;
 
-        seg_list_node_t *seg_add = seg_stack.ptr_stack.top();
-        seg_stack.ptr_stack.pop();
-
-        seg_add->data.name = seg_name;
-        seg_add->data.seg_type = seg_tp;
-
-        for(size_t i = 0; i < legs.size(); i++)
+        seg_list_node_t *seg_add = seg_stack.get_new();
+        if(seg_add != nullptr)
         {
-            leg_list_node_t *leg_add = leg_data_stack.ptr_stack.top();
-            leg_data_stack.ptr_stack.pop();
-            leg_add->data.seg = seg_add;
-            leg_add->data.leg = legs[i];
+            seg_add->data.name = seg_name;
+            seg_add->data.seg_type = seg_tp;
 
-            leg_list.insert_before(next_leg, leg_add);
+            if(seg_tp != FPL_SEG_DISCON)
+            {
+                for(size_t i = 0; i < legs.size(); i++)
+                {
+                    leg_list_data_t c_data;
+                    c_data.seg = seg_add;
+                    c_data.leg = legs[i];
+                    c_data.is_discon = false;
+                    add_singl_leg(next_leg, c_data);
+                }
+            }
+            else
+            {
+                leg_list_data_t c_data;
+                c_data.seg = seg_add;
+                c_data.is_discon = true;
+                add_singl_leg(next_leg, c_data);
+            }
+
+            seg_add->data.end = next_leg->prev;
+
+            seg_list.insert_before(next, seg_add);
         }
-
-        seg_add->data.end = next_leg->prev;
-
-        seg_list.insert_before(next, seg_add);
     }
 
     void FlightPlan::add_legs(std::vector<int>& legs, 
@@ -367,5 +377,57 @@ namespace test
 
         add_segment(legs, seg_tp, seg_name, ins_seg);
         fpl_refs[seg_tp].ptr = ins_seg->prev;
+    }
+
+    void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
+    {
+        leg_list_node_t *leg_add = leg_data_stack.get_new();
+        if(leg_add != nullptr)
+        {
+            leg_add->data = data;
+
+            leg_list.insert_before(next, leg_add);
+        }
+    }
+
+    void FlightPlan::merge_seg(seg_list_node_t *tgt)
+    {
+        int i = 1;
+        seg_list_node_t *curr = tgt->next;
+        seg_list_node_t *next_disc = nullptr;  // Next discountinuity segment
+        seg_list_node_t *next_dir = nullptr;  // Next "direct to" segment
+        while(i+1 && curr != &(seg_list.tail))
+        {
+            if(i == 1 && curr->data.is_disco)
+            {
+                next_disc = curr;
+            }
+            else
+            {
+                if(curr->data.is_direct)
+                    next_dir = curr;
+                break;
+            }
+            curr = curr->next;
+            i--;
+        }
+        if(next_dir != nullptr)
+        {
+            leg_list_node_t *tgt_leg = tgt->data.end;
+            leg_list_node_t *dct_leg = next_dir->data.end;
+
+            if(tgt_leg->data.leg == dct_leg->data.leg)
+            {
+                delete_segment(next_dir);
+                if(next_disc != nullptr)
+                {
+                    delete_segment(next_disc);
+                }
+            }
+            else if(next_disc == nullptr)
+            {
+                add_segment({}, FPL_SEG_DISCON, "DISC", )
+            }
+        }
     }
 } // namespace test
