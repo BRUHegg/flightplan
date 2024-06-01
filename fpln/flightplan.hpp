@@ -15,6 +15,7 @@ namespace test
     constexpr size_t N_FPL_LEG_CACHE_SZ = 200;
     constexpr size_t N_FPL_SEG_CACHE_SZ = 100;
     constexpr size_t N_FPL_REF_SZ = 9;
+    const std::string DISCON_SEG_NAME = "DISCONTINUITY";
 
     enum fpl_segment_types
     {
@@ -138,10 +139,12 @@ namespace test
 
         void delete_between(leg_list_node_t *start, leg_list_node_t *end);
 
-        void delete_segment(seg_list_node_t *seg);
+        void delete_segment(seg_list_node_t *seg, bool leave_seg=true);
 
         void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next);
+
+        void add_discon(seg_list_node_t *next);
 
         void add_legs(std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name);

@@ -343,7 +343,10 @@ namespace test
         for(size_t i = 1; i < legs.size()-1; i++)
         {
             list_node_ref_t<leg_list_data_t> tmp = legs[i];
-            std::cout << tmp.data.leg << " ";
+            if(!tmp.data.is_discon)
+                std::cout << tmp.data.leg << " ";
+            else
+                std::cout << DISCON_SEG_NAME << " ";
         }
         std::cout << "\n";
     }

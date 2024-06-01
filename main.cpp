@@ -15,7 +15,9 @@ int main()
 	std::vector<std::string> pre_exec = {
 		"addlegs RW10 1 1",
 		"addlegs NOB 2 2 3 4",
-		//"dbe 2 4",
+		"addlegs AWY 4 5 6 7 8",
+		"addlegs KOK 2 9 10 11",
+		"addlegs NOB 2 2 3 4",
 		"plegs",
 		"pseg",
 		"prefs"
