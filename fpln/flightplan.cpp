@@ -260,11 +260,11 @@ namespace test
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
                 {
                     seg_list_node_t *prev_seg = curr->data.seg->prev;
-                    if(prev_seg != &(seg_list.head) && 
-                        prev_seg->data.seg_type == FPL_SEG_DISCON)
-                    {
-                        prev_seg = prev_seg->prev;
-                    }
+                    //if(prev_seg != &(seg_list.head) && 
+                    //    prev_seg->data.is_discon)
+                    //{
+                    //    prev_seg = prev_seg->prev;
+                    //}
                     if(prev_seg->data.seg_type != curr_seg->data.seg_type)
                     {
                         fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
@@ -296,7 +296,7 @@ namespace test
         leg_list_node_t *end;
         seg_list_node_t *next_seg = seg->next;
         if(next_seg != &(seg_list.tail) && !next_seg->data.is_direct && 
-            next_seg->data.seg_type != FPL_SEG_DISCON && leave_seg)
+            !next_seg->data.is_discon && leave_seg)
         {
             end = seg->data.end;
             seg->data.is_direct = true;
@@ -348,7 +348,9 @@ namespace test
         if(seg_add != nullptr)
         {
             seg_add->data.name = DISCON_SEG_NAME;
-            seg_add->data.seg_type = FPL_SEG_DISCON;
+            seg_add->data.is_discon = true;
+            fpl_segment_types prev_seg_tp = prev->data.seg_type;
+            seg_add->data.seg_type = prev_seg_tp;
             leg_list_data_t c_data;
             c_data.seg = seg_add;
             c_data.is_discon = true;
@@ -356,6 +358,11 @@ namespace test
 
             seg_add->data.end = next_leg->prev;
             seg_list.insert_before(next, seg_add);
+
+            if(fpl_refs[size_t(prev_seg_tp)].ptr == prev)
+            {
+                fpl_refs[size_t(prev_seg_tp)].ptr = seg_add;
+            }
         }
     }
 
@@ -386,8 +393,15 @@ namespace test
         {
             std::vector<int> vec = {start};
             seg_list_node_t *tmp_seg = ins_seg->prev;
+
+            if(tmp_seg->data.is_discon)
+                tmp_seg = tmp_seg->prev;
+
             add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
-            merge_seg(tmp_seg);
+            
+            if(tmp_seg != &(seg_list.head))
+                merge_seg(tmp_seg);
+
             legs_add = legs;
         }
         else
@@ -425,7 +439,7 @@ namespace test
             seg_list_node_t *prev = curr->prev;
             ins_seg = curr->next;
             *next_seg = ins_seg;
-            while (curr->data.seg_type == seg_tp || curr->data.seg_type == FPL_SEG_DISCON)
+            while (curr->data.seg_type == seg_tp || curr->data.is_discon)
             {
                 delete_segment(curr);
                 curr = prev;
@@ -467,7 +481,7 @@ namespace test
         seg_list_node_t *next_dir = nullptr;  // Next "direct to" segment
         while(i+1 && curr != &(seg_list.tail))
         {
-            if(i == 1 && curr->data.seg_type == FPL_SEG_DISCON)
+            if(i == 1 && curr->data.is_discon)
             {
                 next_disc = curr;
             }

@@ -27,8 +27,7 @@ namespace test
         FPL_SEG_STAR_TRANS = FPL_SEG_ENRT + 1,
         FPL_SEG_STAR = FPL_SEG_STAR_TRANS + 1,
         FPL_SEG_APPCH_TRANS = FPL_SEG_STAR + 1,
-        FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1,
-        FPL_SEG_DISCON = FPL_SEG_APPCH + 1
+        FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
     };
 
 
@@ -37,6 +36,7 @@ namespace test
     struct fpl_seg_t
     {
         bool is_direct;
+        bool is_discon;
         std::string name;
         fpl_segment_types seg_type;
 
