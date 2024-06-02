@@ -37,7 +37,6 @@ namespace test
     struct fpl_seg_t
     {
         bool is_direct;
-        bool is_disco;
         std::string name;
         fpl_segment_types seg_type;
 
@@ -148,7 +147,7 @@ namespace test
         void add_discon(seg_list_node_t *next);
 
         void add_legs(int start, std::vector<int>& legs, fpl_segment_types seg_tp,
-            std::string seg_name);
+            std::string seg_name, seg_list_node_t *next=nullptr);
 
         //bool set_dep_rwy(std::string& rwy);
 
@@ -202,6 +201,9 @@ namespace test
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
 
         void add_singl_leg(leg_list_node_t *next, leg_list_data_t data);
+
+        seg_list_node_t *get_insert_seg(fpl_segment_types seg_tp, 
+            seg_list_node_t **prev_seg);
 
         void merge_seg(seg_list_node_t *tgt);
     };

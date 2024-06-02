@@ -260,6 +260,11 @@ namespace test
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
                 {
                     seg_list_node_t *prev_seg = curr->data.seg->prev;
+                    if(prev_seg != &(seg_list.head) && 
+                        prev_seg->data.seg_type == FPL_SEG_DISCON)
+                    {
+                        prev_seg = prev_seg->prev;
+                    }
                     if(prev_seg->data.seg_type != curr_seg->data.seg_type)
                     {
                         fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
@@ -355,22 +360,71 @@ namespace test
     }
 
     void FlightPlan::add_legs(int start, std::vector<int>& legs, 
-        fpl_segment_types seg_tp, std::string seg_name)
+        fpl_segment_types seg_tp, std::string seg_name, seg_list_node_t *next)
     {
         if(seg_tp == 0 || size_t(seg_tp) >= fpl_refs.size())
         {
             return;
         }
         
+        seg_list_node_t *ins_seg;  // Segment before which the legs are to be inserted
+        seg_list_node_t *next_seg;  // Segment at or before insert segment. It's one past the end of the segment sequence
+        if(next == nullptr)
+        {
+            ins_seg = get_insert_seg(seg_tp, &next_seg);
+        }
+        else
+        {
+            ins_seg = next;
+            next_seg = ins_seg;
+            seg_tp = ins_seg->prev->data.seg_type;
+        }
+
+        std::vector<int> legs_add;
+        if(ins_seg->prev != &(seg_list.head) && 
+            ins_seg->prev->data.seg_type != FPL_SEG_DEP_RWY)
+        {
+            std::vector<int> vec = {start};
+            seg_list_node_t *tmp_seg = ins_seg->prev;
+            add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
+            merge_seg(tmp_seg);
+            legs_add = legs;
+        }
+        else
+        {
+            legs_add.push_back(start);
+            for(auto i: legs)
+            {
+                legs_add.push_back(i);
+            }
+        }
+        add_segment(legs_add, seg_tp, seg_name, ins_seg);
+        merge_seg(ins_seg->prev);
+        fpl_refs[seg_tp].ptr = next_seg->prev;
+    }
+
+    void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
+    {
+        leg_list_node_t *leg_add = leg_data_stack.get_new();
+        if(leg_add != nullptr)
+        {
+            leg_add->data = data;
+
+            leg_list.insert_before(next, leg_add);
+        }
+    }
+
+    seg_list_node_t *FlightPlan::get_insert_seg(fpl_segment_types seg_tp, 
+            seg_list_node_t **next_seg)
+    {
         size_t ref_idx = size_t(seg_tp);
         seg_list_node_t *ins_seg;
-        seg_list_node_t *prev_seg;
         if(fpl_refs[ref_idx].ptr != nullptr && seg_tp != FPL_SEG_ENRT)
         {
             seg_list_node_t *curr = fpl_refs[ref_idx].ptr;
             seg_list_node_t *prev = curr->prev;
             ins_seg = curr->next;
-            prev_seg = ins_seg;
+            *next_seg = ins_seg;
             while (curr->data.seg_type == seg_tp || curr->data.seg_type == FPL_SEG_DISCON)
             {
                 delete_segment(curr);
@@ -394,46 +448,15 @@ namespace test
                     break;
                 }
             }
-            prev_seg = ins_seg;
+            *next_seg = ins_seg;
         }
         else
         {
             ins_seg = fpl_refs[ref_idx].ptr->next;
-            prev_seg = ins_seg;
+            *next_seg = ins_seg;
         }
 
-        std::vector<int> legs_add;
-        if(ins_seg->prev != &(seg_list.head) && 
-            ins_seg->prev->data.seg_type != FPL_SEG_DEP_RWY)
-        {
-            std::vector<int> vec = {start};
-            seg_list_node_t *tmp_seg = ins_seg->prev;
-            add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
-            merge_seg(tmp_seg);
-            legs_add = legs;
-        }
-        else
-        {
-            legs_add.push_back(start);
-            for(auto i: legs)
-            {
-                legs_add.push_back(i);
-            }
-        }
-        add_segment(legs_add, seg_tp, seg_name, ins_seg);
-        merge_seg(ins_seg->prev);
-        fpl_refs[seg_tp].ptr = prev_seg->prev;
-    }
-
-    void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
-    {
-        leg_list_node_t *leg_add = leg_data_stack.get_new();
-        if(leg_add != nullptr)
-        {
-            leg_add->data = data;
-
-            leg_list.insert_before(next, leg_add);
-        }
+        return ins_seg;
     }
 
     void FlightPlan::merge_seg(seg_list_node_t *tgt)
@@ -444,7 +467,7 @@ namespace test
         seg_list_node_t *next_dir = nullptr;  // Next "direct to" segment
         while(i+1 && curr != &(seg_list.tail))
         {
-            if(i == 1 && curr->data.is_disco)
+            if(i == 1 && curr->data.seg_type == FPL_SEG_DISCON)
             {
                 next_disc = curr;
             }
