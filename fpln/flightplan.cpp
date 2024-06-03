@@ -468,25 +468,7 @@ namespace test
         if(prev_seg->data.seg_type > dir_tp)
             dir_tp = prev_seg->data.seg_type;
 
-        if(dist_l == 0)  // if dist_l = 0, dist_r is also 0
-        {
-            add_segment(legs_add, dir_tp, "DCT", next_seg, true);
-            if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
-            {
-                seg_list_node_t *seg_add = seg_stack.get_new();
-                if(seg_add != nullptr)
-                {
-                    seg_add->data.is_direct = true;
-                    seg_add->data.is_discon = false;
-                    seg_add->data.name = "DCT";
-                    seg_add->data.seg_type = next_seg->data.seg_type;
-                    seg_add->data.end = next_leg;
-
-                    seg_list.insert_before(next_seg, seg_add);
-                }
-            }
-        }
-        else
+        if(dist_l != 0)
         {
             // Divide existing segment into 2
             seg_list_node_t *seg_add = seg_stack.get_new();
@@ -513,8 +495,23 @@ namespace test
                 }
                 
                 seg_list.insert_before(prev_seg->next, seg_add);
-                // Add direct before the second part of the divided segment
-                add_segment(legs_add, dir_tp, "DCT", prev_seg->next, true);
+                next_seg = prev_seg->next;
+            }
+        }
+
+        add_segment(legs_add, dir_tp, "DCT", next_seg, true);
+        if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
+        {
+            seg_list_node_t *seg_add = seg_stack.get_new();
+            if(seg_add != nullptr)
+            {
+                seg_add->data.is_direct = true;
+                seg_add->data.is_discon = false;
+                seg_add->data.name = "DCT";
+                seg_add->data.seg_type = next_seg->data.seg_type;
+                seg_add->data.end = next_leg;
+
+                seg_list.insert_before(next_seg, seg_add);
             }
         }
     }
