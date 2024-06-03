@@ -20,6 +20,7 @@ namespace test
 
     enum fpl_segment_types
     {
+        FPL_SEG_NONE = 0,
         FPL_SEG_DEP_RWY = 1,
         FPL_SEG_SID = FPL_SEG_DEP_RWY + 1,
         FPL_SEG_SID_TRANS = FPL_SEG_SID + 1,
@@ -148,6 +149,8 @@ namespace test
 
         void add_legs(int start, std::vector<int>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next=nullptr);
+
+        void add_direct(int leg, leg_list_node_t *next);
 
         //bool set_dep_rwy(std::string& rwy);
 

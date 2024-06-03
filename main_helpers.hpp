@@ -288,6 +288,20 @@ namespace test
         av->fpl->add_legs(start, legs, tp, in[0]);
     }
 
+    inline void add_dir(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size() != 2)
+        {
+            std::cout << "Command expects 2 arguments: <leg>, <next>\n";
+            return;
+        }
+
+        int leg = strutils::stoi_with_strip(in[0]);
+        size_t idx = size_t(strutils::stoi_with_strip(in[1]));
+        auto legs = av->get_legs_list();
+        av->fpl->add_direct(leg, legs[idx].ptr);
+    }
+
     inline void del_seg(Avionics* av, std::vector<std::string>& in)
     {
         if(in.size() != 1)
@@ -390,6 +404,7 @@ namespace test
         {"setarr", set_fpl_arr},
         {"addseg", add_seg},
         {"addlegs", add_legs},
+        {"addir", add_dir},
         {"delseg", del_seg},
         {"pseg", print_seg},
         {"plegs", print_legs},

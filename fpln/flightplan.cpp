@@ -22,7 +22,15 @@ namespace test
 
         fpl_refs = std::vector<fpl_ref_t>(N_FPL_REF_SZ, EmptyRef);
         fpl_refs[0].ptr = &seg_list.head;
-        seg_list.head.data.end = &leg_list.head; 
+
+        seg_list.head.data.end = &leg_list.head;
+        seg_list.tail.data.end = &leg_list.tail;
+
+        seg_list.head.data.seg_type = FPL_SEG_NONE;
+        seg_list.tail.data.seg_type = FPL_SEG_NONE;
+        
+        leg_list.head.data.seg = &seg_list.head;
+        leg_list.tail.data.seg = &seg_list.tail;
     }
 
     size_t FlightPlan::get_leg_list_sz()
@@ -425,6 +433,89 @@ namespace test
             leg_add->data = data;
 
             leg_list.insert_before(next, leg_add);
+        }
+    }
+
+    void FlightPlan::add_direct(int leg, leg_list_node_t *next_leg)
+    {
+        if(fpl_refs[size_t(FPL_SEG_DEP_RWY)].ptr == nullptr)
+            return;
+        leg_list_node_t *prev_leg = next_leg->prev;
+        leg_list_node_t *prev_check = prev_leg;
+        leg_list_node_t *next_check = next_leg;
+
+        seg_list_node_t *prev_seg = prev_leg->data.seg;
+        seg_list_node_t *next_seg = next_leg->data.seg;
+
+        std::vector<int> legs_add = {leg};
+
+        int dist_l = 0;
+        int dist_r = 0;
+
+        while(prev_check->data.seg == next_leg->data.seg && dist_l < 2)
+        {
+            prev_check = prev_check->prev;
+            dist_l++;
+        }
+
+        while(next_check->data.seg == prev_leg->data.seg && dist_r < 2)
+        {
+            next_check = next_check->next;
+            dist_r++;
+        }
+
+        fpl_segment_types dir_tp = next_seg->data.seg_type;
+        if(prev_seg->data.seg_type > dir_tp)
+            dir_tp = prev_seg->data.seg_type;
+
+        if(dist_l == 0)  // if dist_l = 0, dist_r is also 0
+        {
+            add_segment(legs_add, dir_tp, "DCT", next_seg, true);
+            if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
+            {
+                seg_list_node_t *seg_add = seg_stack.get_new();
+                if(seg_add != nullptr)
+                {
+                    seg_add->data.is_direct = true;
+                    seg_add->data.is_discon = false;
+                    seg_add->data.name = "DCT";
+                    seg_add->data.seg_type = next_seg->data.seg_type;
+                    seg_add->data.end = next_leg;
+
+                    seg_list.insert_before(next_seg, seg_add);
+                }
+            }
+        }
+        else
+        {
+            // Divide existing segment into 2
+            seg_list_node_t *seg_add = seg_stack.get_new();
+            if(seg_add != nullptr)
+            {
+                seg_add->data = prev_seg->data;
+                prev_seg->data.end = prev_leg;
+                size_t prev_seg_tp = size_t(prev_seg->data.seg_type);
+                if(fpl_refs[prev_seg_tp].ptr == prev_seg)
+                {
+                    fpl_refs[prev_seg_tp].ptr = seg_add;
+                }
+
+                if(dist_l == 1)
+                {
+                    prev_seg->data.is_direct = true;
+                    prev_seg->data.name = "DCT";
+                }
+                    
+                if(dist_r == 1)
+                {
+                    seg_add->data.is_direct = true;
+                    seg_add->data.name = "DCT";
+                }
+                
+                seg_list.insert_before(prev_seg->next, seg_add);
+                // Add direct before the second part of the divided segment
+                add_segment(legs_add, dir_tp, "DCT", prev_seg->next, true);
+            }
         }
     }
 
