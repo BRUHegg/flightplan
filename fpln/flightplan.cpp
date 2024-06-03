@@ -362,6 +362,7 @@ namespace test
             leg_list_data_t c_data;
             c_data.seg = seg_add;
             c_data.is_discon = true;
+            c_data.leg = -1;
             add_singl_leg(next_leg, c_data);
 
             seg_add->data.end = next_leg->prev;
@@ -475,31 +476,31 @@ namespace test
             if(seg_add != nullptr)
             {
                 seg_add->data = prev_seg->data;
-                prev_seg->data.end = prev_leg;
-                size_t prev_seg_tp = size_t(prev_seg->data.seg_type);
-                if(fpl_refs[prev_seg_tp].ptr == prev_seg)
-                {
-                    fpl_refs[prev_seg_tp].ptr = seg_add;
-                }
+                seg_add->data.end = prev_leg;
 
                 if(dist_l == 1)
                 {
-                    prev_seg->data.is_direct = true;
-                    prev_seg->data.name = "DCT";
+                    seg_add->data.is_direct = true;
+                    seg_add->data.name = DCT_LEG_NAME;
                 }
-                    
+
                 if(dist_r == 1)
                 {
-                    seg_add->data.is_direct = true;
-                    seg_add->data.name = "DCT";
-                }
+                    prev_seg->data.is_direct = true;
+                    prev_seg->data.name = DCT_LEG_NAME;
+                }  
                 
-                seg_list.insert_before(prev_seg->next, seg_add);
-                next_seg = prev_seg->next;
+                seg_list.insert_before(prev_seg, seg_add);
+                next_seg = prev_seg;
             }
         }
 
-        add_segment(legs_add, dir_tp, "DCT", next_seg, true);
+        if(prev_leg->data.leg != leg && next_leg->data.leg != leg)
+        {
+            add_segment(legs_add, dir_tp, DCT_LEG_NAME, next_seg, true);
+            add_discon(next_seg);
+        }
+        
         if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
         {
             seg_list_node_t *seg_add = seg_stack.get_new();
@@ -507,7 +508,7 @@ namespace test
             {
                 seg_add->data.is_direct = true;
                 seg_add->data.is_discon = false;
-                seg_add->data.name = "DCT";
+                seg_add->data.name = DCT_LEG_NAME;
                 seg_add->data.seg_type = next_seg->data.seg_type;
                 seg_add->data.end = next_leg;
 

@@ -19,6 +19,7 @@ int main()
 		"addlegs KOK 2 9 10 11",
 		"addlegs NOB 2 2 3 4",
 		"addlegs AWY2 4 8 9 10 11",
+		"addir 12 7",
 		"plegs",
 		"pseg",
 		"prefs"
