@@ -306,13 +306,26 @@ namespace test
     {
         if(in.size() != 1)
         {
-            std::cout << "Command expects 1 argument: <segment name>\n";
+            std::cout << "Command expects 1 argument: <segment index>\n";
             return;
         }
         auto seg_list = av->get_seg_list();
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
         if(idx > 0 && idx < seg_list.size()-1)
             av->fpl->delete_segment(seg_list[idx].ptr);
+    }
+
+    inline void del_leg(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: <leg index>\n";
+            return;
+        }
+
+        auto leg_list = av->get_legs_list();
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        av->fpl->delete_leg(leg_list[idx].ptr);
     }
 
     inline void delbe(Avionics* av, std::vector<std::string>& in)
@@ -406,6 +419,7 @@ namespace test
         {"addlegs", add_legs},
         {"addir", add_dir},
         {"delseg", del_seg},
+        {"deleg", del_leg},
         {"pseg", print_seg},
         {"plegs", print_legs},
         {"prefs", print_refs},

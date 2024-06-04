@@ -455,12 +455,64 @@ namespace test
         if(next_leg != &leg_list.tail)
             next_seg = subdivide(prev_leg, next_leg);
 
-        if(prev_leg->data.leg != leg && next_leg->data.leg != leg)
+        if(next_seg != nullptr && prev_leg->data.leg != leg && next_leg->data.leg != leg)
         {
             add_segment(legs_add, dir_tp, DCT_LEG_NAME, next_seg, true);
-            
-            if(next_leg != &leg_list.tail)
+
+            if(next_leg != &leg_list.tail && !next_leg->data.is_discon)
                 add_discon(next_seg);
+        }
+    }
+
+    void FlightPlan::delete_leg(leg_list_node_t *leg)
+    {
+        leg_list_node_t *prev_leg = leg->prev;
+        leg_list_node_t *next_leg = leg->next;
+
+        seg_list_node_t *leg_seg = leg->data.seg;
+
+        // Case: the leg is at the end of the flightplan
+        if(next_leg == &leg_list.tail)
+        {
+            int dist_l = 0;
+            leg_list_node_t *prev_check = prev_leg;
+
+            while (prev_check->data.seg == leg->data.seg && dist_l < 2)
+            {
+                dist_l++;
+                prev_check = prev_check->prev;
+            }
+            
+            if(dist_l == 0)
+            {
+                delete_segment(leg_seg, false);
+                return;
+            }
+            else
+            {
+                delete_between(prev_leg, next_leg);
+                if(dist_l == 1)
+                    leg_seg->data.is_direct = true;
+            }
+        }
+        else
+        {
+            seg_list_node_t *seg_add = seg_stack.get_new();
+            seg_list_node_t *seg_next = subdivide(prev_leg, next_leg);
+            if(seg_add != nullptr && seg_next != nullptr)
+            {
+                seg_add->data.name = DISCON_SEG_NAME;
+                seg_add->data.is_direct = false;
+                seg_add->data.is_discon = true;
+                seg_add->data.seg_type = leg_seg->data.seg_type;
+                seg_add->data.end = leg;
+                
+                seg_list.insert_before(seg_next, seg_add);
+            }
+            else if(seg_add != nullptr)
+            {
+                seg_stack.ptr_stack.push(seg_add);
+            }
         }
     }
 
@@ -600,7 +652,8 @@ namespace test
         }
         
         // add start of the 2nd subsegment as a direct
-        if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
+        if(next_seg != &seg_list.tail && !next_seg->data.is_direct && 
+            !next_seg->data.is_discon)
         {
             seg_list_node_t *seg_add = seg_stack.get_new();
             if(seg_add != nullptr)
