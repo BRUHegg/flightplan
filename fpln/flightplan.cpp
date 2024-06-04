@@ -452,12 +452,15 @@ namespace test
         if(prev_seg->data.seg_type > dir_tp)
             dir_tp = prev_seg->data.seg_type;
 
-        next_seg = subdivide(prev_leg, next_leg);
+        if(next_leg != &leg_list.tail)
+            next_seg = subdivide(prev_leg, next_leg);
 
         if(prev_leg->data.leg != leg && next_leg->data.leg != leg)
         {
             add_segment(legs_add, dir_tp, DCT_LEG_NAME, next_seg, true);
-            add_discon(next_seg);
+            
+            if(next_leg != &leg_list.tail)
+                add_discon(next_seg);
         }
     }
 
@@ -596,6 +599,7 @@ namespace test
             }
         }
         
+        // add start of the 2nd subsegment as a direct
         if(next_seg != &seg_list.tail && !next_seg->data.is_direct)
         {
             seg_list_node_t *seg_add = seg_stack.get_new();

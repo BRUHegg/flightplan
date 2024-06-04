@@ -152,6 +152,8 @@ namespace test
 
         void add_direct(int leg, leg_list_node_t *next);
 
+        void delete_leg(leg_list_node_t *leg);
+
         //bool set_dep_rwy(std::string& rwy);
 
         //std::string get_dep_rwy();
