@@ -298,6 +298,16 @@ namespace test
         }
     }
 
+    void FlightPlan::delete_range(leg_list_node_t *start, leg_list_node_t *end)
+    {
+        delete_between(start, end);
+
+        if(end != &leg_list.tail)
+        {
+            subdivide(start, end);
+        }
+    }
+
     void FlightPlan::delete_segment(seg_list_node_t *seg,bool leave_seg)
     {
         leg_list_node_t *start = seg->prev->data.end;
@@ -464,63 +474,16 @@ namespace test
         }
     }
 
-    void FlightPlan::delete_leg(leg_list_node_t *leg)
+    void FlightPlan::delete_leg(leg_list_node_t *leg)  // leg before/after discontinuity
     {
         leg_list_node_t *prev_leg = leg->prev;
         leg_list_node_t *next_leg = leg->next;
 
-        seg_list_node_t *leg_seg = leg->data.seg;
+        delete_range(prev_leg, next_leg);
 
-        // Case: the leg is at the end of the flightplan
-        if(next_leg == &leg_list.tail)
+        if(next_leg != &leg_list.tail)
         {
-            int dist_l = 0;
-            leg_list_node_t *prev_check = prev_leg;
-
-            while (prev_check->data.seg == leg->data.seg && dist_l < 2)
-            {
-                dist_l++;
-                prev_check = prev_check->prev;
-            }
-            
-            if(dist_l == 0)
-            {
-                delete_segment(leg_seg, false);
-                return;
-            }
-            else
-            {
-                delete_between(prev_leg, next_leg);
-                if(dist_l == 1)
-                    leg_seg->data.is_direct = true;
-            }
-        }
-        else if(leg_seg->data.is_direct)
-        {
-            leg_seg->data.is_direct = false;
-            leg_seg->data.is_discon = true;
-            leg_seg->data.name = DISCON_SEG_NAME;
-            leg_seg->data.end->data.is_discon = true;
-            leg_seg->data.end->data.leg = -1;
-        }
-        else
-        {
-            seg_list_node_t *seg_add = seg_stack.get_new();
-            seg_list_node_t *seg_next = subdivide(prev_leg, next_leg);
-            if(seg_add != nullptr && seg_next != nullptr)
-            {
-                seg_add->data.name = DISCON_SEG_NAME;
-                seg_add->data.is_direct = false;
-                seg_add->data.is_discon = true;
-                seg_add->data.seg_type = leg_seg->data.seg_type;
-                seg_add->data.end = leg;
-                
-                seg_list.insert_before(seg_next, seg_add);
-            }
-            else if(seg_add != nullptr)
-            {
-                seg_stack.ptr_stack.push(seg_add);
-            }
+            add_discon(next_leg->data.seg);
         }
     }
 
@@ -641,6 +604,7 @@ namespace test
             {
                 seg_add->data = prev_seg->data;
                 seg_add->data.end = prev_leg;
+                prev_leg->data.seg = seg_add;
 
                 if(dist_l == 1)
                 {
@@ -671,6 +635,7 @@ namespace test
                 seg_add->data.name = DCT_LEG_NAME;
                 seg_add->data.seg_type = next_seg->data.seg_type;
                 seg_add->data.end = next_leg;
+                next_leg->data.seg = seg_add;
 
                 seg_list.insert_before(next_seg, seg_add);
             }

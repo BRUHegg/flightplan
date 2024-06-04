@@ -334,7 +334,7 @@ namespace test
         size_t start = size_t(strutils::stoi_with_strip(in[0]));
         size_t end = size_t(strutils::stoi_with_strip(in[1]));
 
-        av->fpl->delete_between(legs_list[start].ptr, legs_list[end].ptr);
+        av->fpl->delete_range(legs_list[start].ptr, legs_list[end].ptr);
     }
 
     inline void print_seg(Avionics* av, std::vector<std::string>& in)

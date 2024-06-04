@@ -138,8 +138,8 @@ namespace test
 
         seg_map_t get_seg_map();
 
-        void delete_between(leg_list_node_t *start, leg_list_node_t *end);
-
+        void delete_range(leg_list_node_t *start, leg_list_node_t *end);
+        
         void delete_segment(seg_list_node_t *seg, bool leave_seg=true);
 
         void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
@@ -204,6 +204,8 @@ namespace test
         void reset_fpln();
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
+
+        void delete_between(leg_list_node_t *start, leg_list_node_t *end);
 
         void add_singl_leg(leg_list_node_t *next, leg_list_data_t data);
 
