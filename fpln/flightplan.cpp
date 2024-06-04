@@ -268,11 +268,6 @@ namespace test
                 if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
                 {
                     seg_list_node_t *prev_seg = curr->data.seg->prev;
-                    //if(prev_seg != &(seg_list.head) && 
-                    //    prev_seg->data.is_discon)
-                    //{
-                    //    prev_seg = prev_seg->prev;
-                    //}
                     if(prev_seg->data.seg_type != curr_seg->data.seg_type)
                     {
                         fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
@@ -360,6 +355,8 @@ namespace test
     void FlightPlan::add_discon(seg_list_node_t *next)
     {
         seg_list_node_t *prev = next->prev;
+        if(prev->data.is_discon || next->data.is_discon)
+            return;
         leg_list_node_t *next_leg = prev->data.end->next;
 
         seg_list_node_t *seg_add = seg_stack.get_new();
@@ -469,7 +466,7 @@ namespace test
         {
             add_segment(legs_add, dir_tp, DCT_LEG_NAME, next_seg, true);
 
-            if(next_leg != &leg_list.tail && !next_leg->data.is_discon)
+            if(next_leg != &leg_list.tail)
                 add_discon(next_seg);
         }
     }
@@ -638,6 +635,12 @@ namespace test
                 next_leg->data.seg = seg_add;
 
                 seg_list.insert_before(next_seg, seg_add);
+
+                if(next_seg->data.end == next_leg)
+                {
+                    seg_list.pop(next_seg, seg_stack.ptr_stack);
+                    *next_seg = EmptySeg;
+                }
             }
 
             return seg_add;
