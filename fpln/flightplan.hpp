@@ -209,5 +209,7 @@ namespace test
             seg_list_node_t **prev_seg);
 
         void merge_seg(seg_list_node_t *tgt);
+
+        seg_list_node_t *subdivide(leg_list_node_t *prev_leg, leg_list_node_t *next_leg);
     };
 }
