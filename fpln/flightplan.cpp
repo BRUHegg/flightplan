@@ -495,6 +495,14 @@ namespace test
                     leg_seg->data.is_direct = true;
             }
         }
+        else if(leg_seg->data.is_direct)
+        {
+            leg_seg->data.is_direct = false;
+            leg_seg->data.is_discon = true;
+            leg_seg->data.name = DISCON_SEG_NAME;
+            leg_seg->data.end->data.is_discon = true;
+            leg_seg->data.end->data.leg = -1;
+        }
         else
         {
             seg_list_node_t *seg_add = seg_stack.get_new();
