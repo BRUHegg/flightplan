@@ -31,6 +31,8 @@ namespace test
         FPL_SEG_APPCH = FPL_SEG_APPCH_TRANS + 1
     };
 
+    typedef libnav::arinc_leg_t leg_t;
+
 
     struct leg_list_data_t;
 
@@ -46,7 +48,7 @@ namespace test
 
     struct leg_list_data_t
     {
-        int leg;
+        leg_t leg;
         bool is_discon;
         struct_util::list_node_t<fpl_seg_t> *seg;
     };
@@ -81,6 +83,9 @@ namespace test
 
     typedef struct_util::list_node_t<leg_list_data_t> leg_list_node_t;
     typedef struct_util::list_node_t<fpl_seg_t> seg_list_node_t;
+
+    //DEBUG
+    std::string get_leg_str(leg_t& leg);
 
 
     class FlightPlan
@@ -145,19 +150,25 @@ namespace test
         double get_sl_seg(size_t start, size_t l, 
             std::vector<list_node_ref_t<fpl_seg_t>>* out);
 
-        libnav::DbErr set_dep(std::string icao);
-
-        std::string get_dep_icao();
-
-        libnav::DbErr set_arr(std::string icao);
-
-        std::string get_arr_icao();
-
-        std::vector<std::string> get_dep_rwys();
-
-        std::vector<std::string> get_arr_rwys();
+        ~FlightPlan();
 
         void print_refs();
+
+    protected:
+        std::shared_ptr<libnav::ArptDB> arpt_db;
+        std::shared_ptr<libnav::NavaidDB> navaid_db;
+
+        libnav::Airport *departure, *arrival;
+
+        std::vector<fpl_ref_t> fpl_refs;
+
+        struct_util::linked_list_t<leg_list_data_t> leg_list;
+        struct_util::linked_list_t<fpl_seg_t> seg_list;
+
+
+        bool legcmp(leg_t& leg1, leg_t& leg2);
+
+        libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
 
         /*
             Function: delete_range
@@ -172,27 +183,17 @@ namespace test
         
         void delete_segment(seg_list_node_t *seg, bool leave_seg=true);
 
-        void add_segment(std::vector<int>& legs, fpl_segment_types seg_tp,
+        void add_segment(std::vector<leg_t>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next, bool is_direct=false);
 
         void add_discon(seg_list_node_t *next);
 
-        void add_legs(int start, std::vector<int>& legs, fpl_segment_types seg_tp,
+        void add_legs(leg_t start, std::vector<leg_t>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next=nullptr);
 
-        void add_direct(int leg, leg_list_node_t *next);
+        void add_direct(leg_t leg, leg_list_node_t *next);
 
         void delete_leg(leg_list_node_t *leg);
-
-        //bool set_dep_rwy(std::string& rwy);
-
-        //std::string get_dep_rwy();
-
-        //str_set_map_t get_arr_appch();
-
-        //bool set_arr_appch(std::string& proc_name, std::string& trans);
-
-        ~FlightPlan();
 
     private:
         std::map<fpl_segment_types, std::string> seg_to_str = {
@@ -206,26 +207,16 @@ namespace test
             {FPL_SEG_APPCH, "APPR"}
         };
 
-        std::shared_ptr<libnav::ArptDB> arpt_db;
-        std::shared_ptr<libnav::NavaidDB> navaid_db;
+        
         std::string cifp_dir_path;
-
-        libnav::Airport *departure, *arrival;
-
-        std::vector<fpl_ref_t> fpl_refs;
 
 
         struct_util::ll_node_stack_t<leg_list_node_t> leg_data_stack;
         struct_util::ll_node_stack_t<seg_list_node_t> seg_stack;
 
-        struct_util::linked_list_t<leg_list_data_t> leg_list;
-        struct_util::linked_list_t<fpl_seg_t> seg_list;
-        std::mutex fpl_mtx;
 
         // WARNING: these do not lock flight plan mutex
         void reset_fpln();
-
-        libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
 
         void delete_between(leg_list_node_t *start, leg_list_node_t *end);
 

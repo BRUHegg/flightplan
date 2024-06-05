@@ -4,6 +4,11 @@
 
 namespace test
 {
+    std::string get_leg_str(leg_t& leg)
+    {
+        return leg.leg_type + " " + leg.main_fix.id;
+    }
+
     // FlightPlan class definitions:
     // Public member functions:
 
@@ -95,66 +100,6 @@ namespace test
         return seg_list.id;
     }
 
-    libnav::DbErr FlightPlan::set_dep(std::string icao)
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        libnav::DbErr out = set_arpt(icao, &departure);
-        if(arrival != nullptr && departure != nullptr && departure->icao_code == icao
-            && out != libnav::DbErr::ERR_NONE)
-        {
-            delete arrival;
-            arrival = nullptr;
-        }
-        return out;
-    }
-
-    std::string FlightPlan::get_dep_icao()
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(departure != nullptr)
-            return departure->icao_code;
-        return "";
-    }
-
-    libnav::DbErr FlightPlan::set_arr(std::string icao)
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(departure == nullptr)
-        {
-            return libnav::DbErr::ERR_NONE;
-        }
-        
-        return set_arpt(icao, &arrival);
-    }
-
-    std::string FlightPlan::get_arr_icao()
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(arrival != nullptr)
-            return arrival->icao_code;
-        return "";
-    }
-
-    std::vector<std::string> FlightPlan::get_dep_rwys()
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(departure != nullptr)
-        {
-            return departure->get_rwys();
-        }
-        return {};
-    }
-
-    std::vector<std::string> FlightPlan::get_arr_rwys()
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(arrival != nullptr)
-        {
-            return arrival->get_rwys();
-        }
-        return {};
-    }
-
     void FlightPlan::print_refs()
     {
         for(size_t i = 1; i < fpl_refs.size(); i++)
@@ -164,13 +109,47 @@ namespace test
             if(curr != nullptr)
             {
                 std::cout << "Segment " << curr->data.name << " " << curr->data.seg_type << "\n";
-                std::cout << "End leg: " << curr->data.end->data.leg << "\n";
+                std::cout << "End leg: " << get_leg_str(curr->data.end->data.leg) << "\n";
             }
             else
             {
                 std::cout << "\n";
             }
         }
+    }
+
+    // Protected member functions:
+
+    bool FlightPlan::legcmp(leg_t& leg1, leg_t& leg2)
+    {
+        return leg1.main_fix == leg2.main_fix;
+    }
+
+    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
+    {
+        if(*ptr != nullptr && (*ptr)->icao_code == icao)
+        {
+            return libnav::DbErr::ERR_NONE;
+        }
+        libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
+            navaid_db, cifp_dir_path);
+        libnav::DbErr err_cd = tmp->err_code;
+        if(err_cd != libnav::DbErr::SUCCESS && err_cd != libnav::DbErr::PARTIAL_LOAD)
+        {
+            delete tmp;
+        }
+        else
+        {
+            if(*ptr != nullptr)
+            {
+                reset_fpln();
+                delete *ptr;
+            }
+
+            *ptr = tmp;
+        }
+        
+        return err_cd;
     }
 
     void FlightPlan::delete_range(leg_list_node_t *start, leg_list_node_t *end)
@@ -202,7 +181,7 @@ namespace test
         delete_between(start, end);
     }
 
-    void FlightPlan::add_segment(std::vector<int>& legs, 
+    void FlightPlan::add_segment(std::vector<leg_t>& legs, 
         fpl_segment_types seg_tp, std::string seg_name, seg_list_node_t *next, 
         bool is_direct)
     {
@@ -252,7 +231,6 @@ namespace test
             leg_list_data_t c_data;
             c_data.seg = seg_add;
             c_data.is_discon = true;
-            c_data.leg = -1;
             add_singl_leg(next_leg, c_data);
 
             seg_add->data.end = next_leg->prev;
@@ -265,7 +243,7 @@ namespace test
         }
     }
 
-    void FlightPlan::add_legs(int start, std::vector<int>& legs, 
+    void FlightPlan::add_legs(leg_t start, std::vector<leg_t>& legs, 
         fpl_segment_types seg_tp, std::string seg_name, seg_list_node_t *next)
     {
         if(seg_tp == 0 || size_t(seg_tp) >= fpl_refs.size())
@@ -286,11 +264,11 @@ namespace test
             seg_tp = ins_seg->prev->data.seg_type;
         }
 
-        std::vector<int> legs_add;
+        std::vector<leg_t> legs_add;
         if(ins_seg->prev != &(seg_list.head) && 
             ins_seg->prev->data.seg_type != FPL_SEG_DEP_RWY)
         {
-            std::vector<int> vec = {start};
+            std::vector<leg_t> vec = {start};
             seg_list_node_t *tmp_seg = ins_seg->prev;
 
             if(tmp_seg->data.is_discon)
@@ -316,7 +294,7 @@ namespace test
         merge_seg(ins_seg->prev);
     }
 
-    void FlightPlan::add_direct(int leg, leg_list_node_t *next_leg)
+    void FlightPlan::add_direct(leg_t leg, leg_list_node_t *next_leg)
     {
         if(fpl_refs[size_t(FPL_SEG_DEP_RWY)].ptr == nullptr)
             return;
@@ -325,7 +303,7 @@ namespace test
         seg_list_node_t *prev_seg = prev_leg->data.seg;
         seg_list_node_t *next_seg = next_leg->data.seg;
 
-        std::vector<int> legs_add = {leg};
+        std::vector<leg_t> legs_add = {leg};
 
         fpl_segment_types dir_tp = next_seg->data.seg_type;
         if(prev_seg->data.seg_type > dir_tp)
@@ -334,7 +312,8 @@ namespace test
         if(next_leg != &leg_list.tail)
             next_seg = subdivide(prev_leg, next_leg);
 
-        if(next_seg != nullptr && prev_leg->data.leg != leg && next_leg->data.leg != leg)
+        if(next_seg != nullptr && !legcmp(prev_leg->data.leg, leg) && 
+            !legcmp(next_leg->data.leg, leg))
         {
             add_segment(legs_add, dir_tp, DCT_LEG_NAME, next_seg, true);
 
@@ -377,33 +356,6 @@ namespace test
             fpl_refs[i].name = "";
             fpl_refs[i].ptr = nullptr;
         }
-    }
-
-    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
-    {
-        if(*ptr != nullptr && (*ptr)->icao_code == icao)
-        {
-            return libnav::DbErr::ERR_NONE;
-        }
-        libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
-            navaid_db, cifp_dir_path);
-        libnav::DbErr err_cd = tmp->err_code;
-        if(err_cd != libnav::DbErr::SUCCESS && err_cd != libnav::DbErr::PARTIAL_LOAD)
-        {
-            delete tmp;
-        }
-        else
-        {
-            if(*ptr != nullptr)
-            {
-                reset_fpln();
-                delete *ptr;
-            }
-
-            *ptr = tmp;
-        }
-        
-        return err_cd;
     }
 
     void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
@@ -534,7 +486,7 @@ namespace test
             leg_list_node_t *tgt_leg = tgt->data.end;
             leg_list_node_t *dct_leg = next_dir->data.end;
 
-            if(tgt_leg->data.leg == dct_leg->data.leg)
+            if(legcmp(tgt_leg->data.leg, dct_leg->data.leg))
             {
                 delete_segment(next_dir, false);
                 if(next_disc != nullptr)
