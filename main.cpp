@@ -22,7 +22,9 @@ int main()
 		"addir 12 9",
 		"addir 13 10",
 		"dbe 10 12",
-		//"addir 12 7",
+		"addir 12 5",
+		"addlegs KOK 2 15 16 17",
+		"addlegs KOM 2 18 19 12",
 		"plegs",
 		"pseg",
 		"prefs"

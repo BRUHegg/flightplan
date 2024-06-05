@@ -432,8 +432,8 @@ namespace test
             }
         }
         add_segment(legs_add, seg_tp, seg_name, ins_seg);
-        merge_seg(ins_seg->prev);
         fpl_refs[seg_tp].ptr = next_seg->prev;
+        merge_seg(ins_seg->prev);
     }
 
     void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
