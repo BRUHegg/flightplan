@@ -102,7 +102,8 @@ namespace test
             Each ref stores a pointer to its end segment and a name associated with it(
                 e.g. name of SID, transition, etc.
             ). If a ref doesn't have an end segment i.e. it doesn't exist in the flightplan,
-            its pointer to end segment is null.
+            its pointer to end segment is null. There can be only one ref per each flightplan
+            section.
             2) Segments:
             These are sequences of legs. They can represent legs belonging to one airway
             segment or legs that belong to one procedure.
