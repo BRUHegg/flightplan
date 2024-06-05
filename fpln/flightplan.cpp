@@ -348,6 +348,9 @@ namespace test
             }
 
             seg_add->data.end = next_leg->prev;
+            if(prev->data.seg_type != next->data.seg_type && 
+                seg_tp != next->data.seg_type)
+                fpl_refs[size_t(seg_tp)].ptr = seg_add;
             seg_list.insert_before(next, seg_add);
         }
     }
