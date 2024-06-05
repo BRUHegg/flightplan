@@ -173,126 +173,6 @@ namespace test
         }
     }
 
-    FlightPlan::leg_map_t FlightPlan::get_leg_map()
-    {
-        leg_map_t out;
-        out[-1] = &leg_list.head;
-        out[-2] = &leg_list.tail;
-        leg_list_node_t *curr = leg_list.head.next;
-        while(curr != &leg_list.tail)
-        {
-            out[curr->data.leg] = curr;
-            curr = curr->next;
-        }
-
-        return out;
-    }
-
-    FlightPlan::seg_map_t FlightPlan::get_seg_map()
-    {
-        seg_map_t out;
-        out["HEAD"] = &seg_list.head;
-        out["TAIL"] = &seg_list.tail;
-        seg_list_node_t *curr = seg_list.head.next;
-        while(curr != &seg_list.tail)
-        {
-            out[curr->data.name] = curr;
-            curr = curr->next;
-        }
-
-        return out;
-    }
-
-    FlightPlan::~FlightPlan()
-    {
-        std::lock_guard<std::mutex> lock(fpl_mtx);
-
-        reset_fpln();
-        leg_data_stack.destroy();
-        seg_stack.destroy();
-    }
-
-    // Private member functions:
-
-    void FlightPlan::reset_fpln()
-    {
-        leg_list.release_all(leg_data_stack.ptr_stack);
-        seg_list.release_all(seg_stack.ptr_stack);
-
-        for(size_t i = 0; i < N_FPL_REF_SZ; i++)
-        {
-            fpl_refs[i].name = "";
-            fpl_refs[i].ptr = nullptr;
-        }
-    }
-
-    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
-    {
-        if(*ptr != nullptr && (*ptr)->icao_code == icao)
-        {
-            return libnav::DbErr::ERR_NONE;
-        }
-        libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
-            navaid_db, cifp_dir_path);
-        libnav::DbErr err_cd = tmp->err_code;
-        if(err_cd != libnav::DbErr::SUCCESS && err_cd != libnav::DbErr::PARTIAL_LOAD)
-        {
-            delete tmp;
-        }
-        else
-        {
-            if(*ptr != nullptr)
-            {
-                reset_fpln();
-                delete *ptr;
-            }
-
-            *ptr = tmp;
-        }
-        
-        return err_cd;
-    }
-
-    void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
-    {
-        leg_list_node_t *curr = start->next;
-        leg_list_node_t *next = curr->next;
-
-        while (curr != end)
-        {
-            seg_list_node_t *curr_seg = curr->data.seg;
-            
-            if(curr_seg != next->data.seg && curr_seg != start->data.seg)
-            {
-                
-                if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
-                {
-                    seg_list_node_t *prev_seg = curr->data.seg->prev;
-                    if(prev_seg->data.seg_type != curr_seg->data.seg_type)
-                    {
-                        fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
-                    }
-                    else
-                    {
-                        fpl_refs[curr_seg->data.seg_type].ptr = prev_seg;
-                    }
-                }
-                
-                seg_list.pop(curr_seg, seg_stack.ptr_stack);
-                *curr_seg = EmptySeg;
-            }
-            else if(curr_seg != next->data.seg)
-            {
-                curr_seg->data.end = start;
-            }
-            
-            leg_list.pop(curr, leg_data_stack.ptr_stack);
-            *curr = EmptyNode;
-            curr = next;
-            next = curr->next;
-        }
-    }
-
     void FlightPlan::delete_range(leg_list_node_t *start, leg_list_node_t *end)
     {
         delete_between(start, end);
@@ -394,7 +274,7 @@ namespace test
         }
         
         seg_list_node_t *ins_seg;  // Segment before which the legs are to be inserted
-        seg_list_node_t *next_seg;  // Segment at or before insert segment. It's one past the end of the segment sequence
+        seg_list_node_t *next_seg;  // Segment at or after insert segment. It's after the end of the segment sequence
         if(next == nullptr)
         {
             ins_seg = get_insert_seg(seg_tp, &next_seg);
@@ -434,17 +314,6 @@ namespace test
         add_segment(legs_add, seg_tp, seg_name, ins_seg);
         fpl_refs[seg_tp].ptr = next_seg->prev;
         merge_seg(ins_seg->prev);
-    }
-
-    void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
-    {
-        leg_list_node_t *leg_add = leg_data_stack.get_new();
-        if(leg_add != nullptr)
-        {
-            leg_add->data = data;
-
-            leg_list.insert_before(next, leg_add);
-        }
     }
 
     void FlightPlan::add_direct(int leg, leg_list_node_t *next_leg)
@@ -487,6 +356,107 @@ namespace test
         }
     }
 
+    FlightPlan::~FlightPlan()
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        reset_fpln();
+        leg_data_stack.destroy();
+        seg_stack.destroy();
+    }
+
+    // Private member functions:
+
+    void FlightPlan::reset_fpln()
+    {
+        leg_list.release_all(leg_data_stack.ptr_stack);
+        seg_list.release_all(seg_stack.ptr_stack);
+
+        for(size_t i = 0; i < N_FPL_REF_SZ; i++)
+        {
+            fpl_refs[i].name = "";
+            fpl_refs[i].ptr = nullptr;
+        }
+    }
+
+    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
+    {
+        if(*ptr != nullptr && (*ptr)->icao_code == icao)
+        {
+            return libnav::DbErr::ERR_NONE;
+        }
+        libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
+            navaid_db, cifp_dir_path);
+        libnav::DbErr err_cd = tmp->err_code;
+        if(err_cd != libnav::DbErr::SUCCESS && err_cd != libnav::DbErr::PARTIAL_LOAD)
+        {
+            delete tmp;
+        }
+        else
+        {
+            if(*ptr != nullptr)
+            {
+                reset_fpln();
+                delete *ptr;
+            }
+
+            *ptr = tmp;
+        }
+        
+        return err_cd;
+    }
+
+    void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
+    {
+        leg_list_node_t *curr = start->next;
+        leg_list_node_t *next = curr->next;
+
+        while (curr != end)
+        {
+            seg_list_node_t *curr_seg = curr->data.seg;
+            
+            if(curr_seg != next->data.seg && curr_seg != start->data.seg)
+            {
+                
+                if(curr_seg == fpl_refs[curr_seg->data.seg_type].ptr)
+                {
+                    seg_list_node_t *prev_seg = curr->data.seg->prev;
+                    if(prev_seg->data.seg_type != curr_seg->data.seg_type)
+                    {
+                        fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
+                    }
+                    else
+                    {
+                        fpl_refs[curr_seg->data.seg_type].ptr = prev_seg;
+                    }
+                }
+                
+                seg_list.pop(curr_seg, seg_stack.ptr_stack);
+                *curr_seg = EmptySeg;
+            }
+            else if(curr_seg != next->data.seg)
+            {
+                curr_seg->data.end = start;
+            }
+            
+            leg_list.pop(curr, leg_data_stack.ptr_stack);
+            *curr = EmptyNode;
+            curr = next;
+            next = curr->next;
+        }
+    }
+
+    void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
+    {
+        leg_list_node_t *leg_add = leg_data_stack.get_new();
+        if(leg_add != nullptr)
+        {
+            leg_add->data = data;
+
+            leg_list.insert_before(next, leg_add);
+        }
+    }
+
     seg_list_node_t *FlightPlan::get_insert_seg(fpl_segment_types seg_tp, 
             seg_list_node_t **next_seg)
     {
@@ -504,6 +474,12 @@ namespace test
                 curr = prev;
                 prev = curr->prev;
             }
+            /*
+                Example scenario: there is an airway segment that starts where the SID ends.
+                In this case the end of the SID(beginning of the airway segment) will be
+                left out by delete_segment as a direct. So we need to insert our legs 
+                before this direct.
+            */
             while(ins_seg->prev->data.seg_type == seg_tp)
             {
                 ins_seg = ins_seg->prev;

@@ -71,7 +71,6 @@ namespace test
         double id;
     };
     
-
     
     static const struct struct_util::list_node_t<leg_list_data_t> EmptyNode = 
         {nullptr, nullptr, {}};
@@ -79,14 +78,39 @@ namespace test
         {nullptr, nullptr, {}};
     static const struct fpl_ref_t EmptyRef = {"", nullptr};
 
+
     typedef struct_util::list_node_t<leg_list_data_t> leg_list_node_t;
     typedef struct_util::list_node_t<fpl_seg_t> seg_list_node_t;
 
+
     class FlightPlan
     {
+        /*
+            Class: FlightPlan
+            Description:
+            This class is used to store the flight plan. It's supposed to be flexible,
+            so it doesn't just store a sequence of legs. There's some added complexity.
+            Here's the layout of how things work:
+            The flightplan is stored in 3 layers:
+            1) Refs
+            2) Segments
+            3) Individual legs
+
+            1) Refs:
+            These are references to a particular section of the flight plan. E.g. SID or
+            SID transition. All of these sections are defined in the fpl_segment_types enum.
+            Each ref stores a pointer to its end segment and a name associated with it(
+                e.g. name of SID, transition, etc.
+            ). If a ref doesn't have an end segment i.e. it doesn't exist in the flightplan,
+            its pointer to end segment is null.
+            2) Segments:
+            These are sequences of legs. They can represent legs belonging to one airway
+            segment or legs that belong to one procedure.
+            3) Legs:
+            These are basically arinc424 legs.
+        */
+
         typedef std::unordered_map<std::string, std::set<std::string>> str_set_map_t;
-        typedef std::map<int, leg_list_node_t*> leg_map_t;
-        typedef std::map<std::string, seg_list_node_t*> seg_map_t;
 
     public:
         FlightPlan(std::shared_ptr<libnav::ArptDB> apt_db, 
@@ -134,9 +158,14 @@ namespace test
 
         void print_refs();
 
-        leg_map_t get_leg_map();
-
-        seg_map_t get_seg_map();
+        /*
+            Function: delete_range
+            Description:
+            Safely deletes all legs between start and end. start and end don't get
+            deleted. The function takes care of updating segments and refs if necessary.
+            @param start: start node
+            @param end: end node
+        */
 
         void delete_range(leg_list_node_t *start, leg_list_node_t *end);
         
@@ -183,14 +212,6 @@ namespace test
         libnav::Airport *departure, *arrival;
 
         std::vector<fpl_ref_t> fpl_refs;
-        //fpl_ref_t dep_rwy;
-        //std::string sid_name;
-        //fpl_ref_t sid_trans;
-        //fpl_ref_t enrt;
-        //fpl_ref_t star;
-        //fpl_ref_t star_trans;
-        //fpl_ref_t appr;
-        //fpl_ref_t appr_trans;
 
 
         struct_util::ll_node_stack_t<leg_list_node_t> leg_data_stack;
@@ -200,7 +221,7 @@ namespace test
         struct_util::linked_list_t<fpl_seg_t> seg_list;
         std::mutex fpl_mtx;
 
-        // WARNING: this does not lock flight plan mutex
+        // WARNING: these do not lock flight plan mutex
         void reset_fpln();
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
@@ -209,8 +230,20 @@ namespace test
 
         void add_singl_leg(leg_list_node_t *next, leg_list_data_t data);
 
+        /*
+            Function: get_insert_seg
+            Description:
+            This function determines the segment before which the other segment 
+            should be inserted for the add_legs function.
+            @param seg_tp: type of the segment to be inserted
+            @param next_seg: pointer to where the function should write the second
+            return value
+            @return: pointer to segment before which the new segment should be inserted,
+            pointer to the segment after the segment sequence of seg_tp.
+        */
+
         seg_list_node_t *get_insert_seg(fpl_segment_types seg_tp, 
-            seg_list_node_t **prev_seg);
+            seg_list_node_t **next_seg);
 
         void merge_seg(seg_list_node_t *tgt);
 
