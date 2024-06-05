@@ -37,7 +37,5 @@ namespace test
 
     private:
         std::string arr_rwy;
-
-        std::mutex fpl_mtx;
     };
 } // namespace test

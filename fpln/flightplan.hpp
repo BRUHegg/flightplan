@@ -165,6 +165,8 @@ namespace test
         struct_util::linked_list_t<leg_list_data_t> leg_list;
         struct_util::linked_list_t<fpl_seg_t> seg_list;
 
+        std::mutex fpl_mtx;
+
 
         bool legcmp(leg_t& leg1, leg_t& leg2);
 
