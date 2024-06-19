@@ -3,31 +3,18 @@
 
 int main()
 {
-    std::string earth_nav_path = "/home/betatest/X-Plane 12/Resources/default data/";
-    std::string apt_path = "/home/betatest/X-Plane 12/Global Scenery/Global Airports/Earth nav data/apt.dat";
+    std::string earth_nav_path = "C:/Users/bieden/Documents/test_data/";
+	std::string xp_ver = "xp12/";
     
-    test::Avionics avncs(apt_path, "777_arpt.dat", 
-		"777_rnw.dat", earth_nav_path+"earth_fix.dat", 
-		earth_nav_path+"earth_nav.dat", earth_nav_path+"earth_awy.dat", 
-		earth_nav_path+"earth_hold.dat", earth_nav_path+"CIFP");
+    test::Avionics avncs(earth_nav_path+xp_ver+"apt.dat", earth_nav_path+xp_ver+"777_arpt.dat", 
+		earth_nav_path+xp_ver+"777_rnw.dat", earth_nav_path+xp_ver+"earth_fix.dat", 
+		earth_nav_path+xp_ver+"earth_nav.dat", 
+		earth_nav_path+xp_ver+"earth_awy.dat", 
+		earth_nav_path+xp_ver+"earth_hold.dat", earth_nav_path+"CIFP");
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
-		"addlegs RW10 1 1",
-		"addlegs NOB 2 2 3 4",
-		"addlegs AWY 4 4 5 6 7 8",
-		"addlegs KOK 2 9 10 11",
-		"addlegs NOB 2 2 3 4",
-		"addlegs AWY2 4 8 9 10 11",
-		"addir 12 9",
-		"addir 13 10",
-		"dbe 10 12",
-		"addir 12 5",
-		"addlegs KOK 2 15 16 17",
-		"addlegs KOM 2 18 19 12",
-		"plegs",
-		"pseg",
-		"prefs"
+		
 		};
 	//pre_exec = {};
 

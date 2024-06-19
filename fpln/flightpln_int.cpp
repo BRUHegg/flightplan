@@ -3,9 +3,12 @@
 
 namespace test
 {
+    // FplnInt member functions:
+    // Public functions:
+
     FplnInt::FplnInt(std::shared_ptr<libnav::ArptDB> apt_db, 
             std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path):
-        FlightPlan(arpt_db, nav_db, cifp_path)
+        FlightPlan(apt_db, nav_db, cifp_path)
     {
 
     }
@@ -39,7 +42,12 @@ namespace test
             return libnav::DbErr::ERR_NONE;
         }
         
-        return set_arpt(icao, &arrival);
+        libnav::DbErr err = set_arpt(icao, &arrival, true);
+        if(err != libnav::DbErr::ERR_NONE)
+        {
+            arr_rwy = "";
+        }
+        return err;
     }
 
     std::string FplnInt::get_arr_icao()
@@ -90,7 +98,6 @@ namespace test
 
                 fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
                 add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
-
                 return true;
             }
         }
@@ -109,5 +116,28 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
+        if(arrival != nullptr)
+        {
+            auto rwy_db = arrival->get_rwy_db();
+            
+            if(rwy_db.find(rwy) != rwy_db.end())
+            {
+                arr_rwy = rwy;
+
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    std::string FplnInt::get_arr_rwy()
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        return arr_rwy;
+    }
+
+    // Private functions:
+
+
 } // namespace test

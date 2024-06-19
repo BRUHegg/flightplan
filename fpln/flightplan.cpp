@@ -14,8 +14,8 @@ namespace test
 
     FlightPlan::FlightPlan(std::shared_ptr<libnav::ArptDB> apt_db, 
             std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path): 
-        leg_data_stack(N_FPL_LEG_CACHE_SZ), seg_stack(N_FPL_SEG_CACHE_SZ), 
-        leg_list(), seg_list()
+        leg_list(), seg_list(),
+        leg_data_stack(N_FPL_LEG_CACHE_SZ), seg_stack(N_FPL_SEG_CACHE_SZ)
     {
         departure = nullptr;
         arrival = nullptr;
@@ -125,7 +125,7 @@ namespace test
         return leg1.main_fix == leg2.main_fix;
     }
 
-    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr)
+    libnav::DbErr FlightPlan::set_arpt(std::string icao, libnav::Airport **ptr, bool is_arr)
     {
         if(*ptr != nullptr && (*ptr)->icao_code == icao)
         {
@@ -142,7 +142,7 @@ namespace test
         {
             if(*ptr != nullptr)
             {
-                reset_fpln();
+                reset_fpln(is_arr);
                 delete *ptr;
             }
 
@@ -346,16 +346,19 @@ namespace test
 
     // Private member functions:
 
-    void FlightPlan::reset_fpln()
+    void FlightPlan::reset_fpln(bool leave_dep_rwy)
     {
-        leg_list.release_all(leg_data_stack.ptr_stack);
-        seg_list.release_all(seg_stack.ptr_stack);
+        seg_list_node_t *seg_start = &seg_list.head;
 
-        for(size_t i = 0; i < N_FPL_REF_SZ; i++)
+        if(leave_dep_rwy && fpl_refs[FPL_SEG_DEP_RWY].ptr != nullptr)
         {
-            fpl_refs[i].name = "";
-            fpl_refs[i].ptr = nullptr;
+            seg_start = fpl_refs[FPL_SEG_DEP_RWY].ptr;
         }
+        
+        leg_list_node_t *leg_start = seg_start->data.end;
+        leg_list_node_t *leg_end = &leg_list.tail;
+
+        delete_between(leg_start, leg_end);
     }
 
     void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
@@ -376,6 +379,7 @@ namespace test
                     if(prev_seg->data.seg_type != curr_seg->data.seg_type)
                     {
                         fpl_refs[curr_seg->data.seg_type].ptr = nullptr;
+                        fpl_refs[curr_seg->data.seg_type].name = "";
                     }
                     else
                     {

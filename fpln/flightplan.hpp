@@ -170,7 +170,7 @@ namespace test
 
         bool legcmp(leg_t& leg1, leg_t& leg2);
 
-        libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr);
+        libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr, bool is_arr=false);
 
         /*
             Function: delete_range
@@ -218,7 +218,7 @@ namespace test
 
 
         // WARNING: these do not lock flight plan mutex
-        void reset_fpln();
+        void reset_fpln(bool leave_dep_rwy=false);
 
         void delete_between(leg_list_node_t *start, leg_list_node_t *end);
 

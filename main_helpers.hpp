@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "fpln/flightplan.hpp"
+#include "fpln/flightpln_int.hpp"
 
 #define UNUSED(x) (void)(x)
 
@@ -28,7 +28,7 @@ namespace test
         std::shared_ptr<libnav::AwyDB> awy_db;
         std::shared_ptr<libnav::HoldDB> hold_db;
 
-        std::shared_ptr<FlightPlan> fpl;
+        std::shared_ptr<FplnInt> fpl;
 
         std::unordered_map<std::string, std::string> env_vars;
 
@@ -96,7 +96,7 @@ namespace test
                 std::cout << "Unable to load hold database\n";
             }
 
-            fpl = std::make_shared<FlightPlan>(arpt_db_ptr, navaid_db_ptr, cifp_dir_path);
+            fpl = std::make_shared<FplnInt>(arpt_db_ptr, navaid_db_ptr, cifp_dir_path);
         }
 
         std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
@@ -209,6 +209,8 @@ namespace test
         }
         std::cout << "Departure: " << av->fpl->get_dep_icao() << "\n";
         std::cout << "Arrival: " << av->fpl->get_arr_icao() << "\n";
+        std::cout << "Departure runway: " << av->fpl->get_dep_rwy() << "\n";
+        std::cout << "Arrival runway: " << av->fpl->get_arr_rwy() << "\n";
     }
 
     inline void set_fpl_dep(Avionics* av, std::vector<std::string>& in)
@@ -249,160 +251,65 @@ namespace test
         }
     }
 
-    inline void add_seg(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size() < 4)
-        {
-            std::cout << "Command expects 4 arguments: <seg name>, <seg type>, <next>, <legs>\n";
-            return;
-        }
-
-        auto seg_mp = av->fpl->get_seg_map();
-        fpl_segment_types tp = fpl_segment_types(strutils::stoi_with_strip(in[1]));
-        auto seg_list = av->get_seg_list();
-        size_t idx = size_t(strutils::stoi_with_strip(in[2]));
-        std::vector<int> legs;
-        for(size_t i = 3; i < in.size(); i++)
-        {
-            legs.push_back(strutils::stoi_with_strip(in[i])); //addseg A 2 TAIL 1 2 3
-        }
-        av->fpl->add_segment(legs, tp, in[0], seg_list[idx].ptr);
-    }
-
-    inline void add_legs(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size() < 3)
-        {
-            std::cout << "Command expects 4 arguments: <seg name>, <seg type>, \
-            <start leg>, <legs>\n";
-            return;
-        }
-        fpl_segment_types tp = fpl_segment_types(strutils::stoi_with_strip(in[1]));
-        std::vector<int> legs;
-        int start = strutils::stoi_with_strip(in[2]);
-        for(size_t i = 3; i < in.size(); i++)
-        {
-            legs.push_back(strutils::stoi_with_strip(in[i]));
-        }
-
-        av->fpl->add_legs(start, legs, tp, in[0]);
-    }
-
-    inline void add_dir(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size() != 2)
-        {
-            std::cout << "Command expects 2 arguments: <leg>, <next>\n";
-            return;
-        }
-
-        int leg = strutils::stoi_with_strip(in[0]);
-        size_t idx = size_t(strutils::stoi_with_strip(in[1]));
-        auto legs = av->get_legs_list();
-        av->fpl->add_direct(leg, legs[idx].ptr);
-    }
-
-    inline void del_seg(Avionics* av, std::vector<std::string>& in)
+    inline void set_dep_rwy(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 1)
         {
-            std::cout << "Command expects 1 argument: <segment index>\n";
+            std::cout << "Command expects 1 argument: icao code\n";
             return;
         }
-        auto seg_list = av->get_seg_list();
-        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        if(idx > 0 && idx < seg_list.size()-1)
-            av->fpl->delete_segment(seg_list[idx].ptr);
+
+        bool rwy_set = av->fpl->set_dep_rwy(in[0]);
+
+        if(!rwy_set)
+        {
+            std::cout << "Runway not set";
+        }
     }
 
-    inline void del_leg(Avionics* av, std::vector<std::string>& in)
+    inline void set_arr_rwy(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 1)
         {
-            std::cout << "Command expects 1 argument: <leg index>\n";
+            std::cout << "Command expects 1 argument: icao code\n";
             return;
         }
 
-        auto leg_list = av->get_legs_list();
-        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        av->fpl->delete_leg(leg_list[idx].ptr);
+        bool rwy_set = av->fpl->set_arr_rwy(in[0]);
+
+        if(!rwy_set)
+        {
+            std::cout << "Runway not set";
+        }
     }
 
-    inline void delbe(Avionics* av, std::vector<std::string>& in)
+    inline void get_dep_rwys(Avionics *av, std::vector<std::string>& in)
     {
-        auto legs_list = av->get_legs_list();
-        size_t start = size_t(strutils::stoi_with_strip(in[0]));
-        size_t end = size_t(strutils::stoi_with_strip(in[1]));
-
-        av->fpl->delete_range(legs_list[start].ptr, legs_list[end].ptr);
-    }
-
-    inline void print_seg(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size())
+        if(in.size() != 0)
         {
-            std::cout << "Too many arguments provided\n";
-            return;
-        }
-        auto seg_list = av->get_seg_list();
-        size_t cnt = 1;
-        for(size_t i = 1; i < seg_list.size()-1; i++)
-        {
-            list_node_ref_t<fpl_seg_t> tmp = seg_list[i];
-            std::cout << cnt << ". Segment " << tmp.data.name << " " << 
-                tmp.data.seg_type << "\n";
-            std::cout << "End leg: " << tmp.data.end->data.leg << "\n";
-            cnt++;
-        }
-        
-        std::cout << "\n";
-    }
-
-    // Print commands
-
-    inline void print_legs(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size())
-        {
-            std::cout << "Too many arguments provided\n";
-            return;
-        }
-        
-        auto legs = av->get_legs_list();
-        for(size_t i = 1; i < legs.size()-1; i++)
-        {
-            list_node_ref_t<leg_list_data_t> tmp = legs[i];
-            if(!tmp.data.is_discon)
-                std::cout << tmp.data.leg << " ";
-            else
-                std::cout << DISCON_SEG_NAME << " ";
-        }
-        std::cout << "\n";
-    }
-
-    inline void print_refs(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size())
-        {
-            std::cout << "Too many arguments provided\n";
-            return;
-        }
-        av->fpl->print_refs();
-    }
-
-    inline void print_cdu_legs(Avionics* av, std::vector<std::string>& in)
-    {
-        if(in.size())
-        {
-            std::cout << "Too many arguments provided\n";
+            std::cout << "Command expects 0 arguments\n";
             return;
         }
 
-        std::vector<list_node_ref_t<leg_list_data_t>> scr_data;  // What's shown on CDU screen
-        av->leg_list_id = av->fpl->get_ll_seg(size_t(av->legs_sbpg) * 5, 5, &scr_data);
-        for(size_t i = 0; i < scr_data.size(); i++)
+        std::vector<std::string> rwys = av->fpl->get_dep_rwys();
+        for(auto i: rwys)
         {
-            std::cout << scr_data[i].data.leg << "\n";
+            std::cout << i << "\n";
+        }
+    }
+
+    inline void get_arr_rwys(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 0)
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        std::vector<std::string> rwys = av->fpl->get_arr_rwys();
+        for(auto i: rwys)
+        {
+            std::cout << i << "\n";
         }
     }
 
@@ -415,15 +322,9 @@ namespace test
         {"fplinfo", fplinfo},
         {"setdep", set_fpl_dep},
         {"setarr", set_fpl_arr},
-        {"addseg", add_seg},
-        {"addlegs", add_legs},
-        {"addir", add_dir},
-        {"delseg", del_seg},
-        {"deleg", del_leg},
-        {"pseg", print_seg},
-        {"plegs", print_legs},
-        {"prefs", print_refs},
-        {"pcl", print_cdu_legs},
-        {"dbe", delbe}
+        {"setdeprwy", set_dep_rwy},
+        {"setarrrwy", set_arr_rwy},
+        {"getdeprwys", get_dep_rwys},
+        {"getarrrwys", get_arr_rwys},
         };
 }
