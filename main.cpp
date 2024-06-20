@@ -14,7 +14,10 @@ int main()
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
-		
+		"setdep KPDX",
+		"setarr KLAS",
+		"setdeprwy 28L",
+		"fplinfo"
 		};
 	//pre_exec = {};
 

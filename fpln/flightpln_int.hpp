@@ -11,7 +11,7 @@ namespace test
         PROC_TYPE_SID = 0,
         PROC_TYPE_STAR = 1,
         PROC_TYPE_APPCH = 2
-    }
+    };
 
     constexpr size_t N_PROC_DB_SZ = 5;
     constexpr size_t N_ARR_DB_OFFSET = 2;
@@ -63,7 +63,7 @@ namespace test
 
         static size_t get_proc_db_idx(ProcType tp, bool is_arr=false);
 
-        static std::vector<std::string> get_proc(std::string rw="", libnav::str_umap_t& db);
+        static std::vector<std::string> get_proc(libnav::str_umap_t& db, std::string rw="");
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);

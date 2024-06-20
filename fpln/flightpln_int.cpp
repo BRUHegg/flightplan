@@ -149,28 +149,33 @@ namespace test
         return arr_rwy;
     }
 
-    std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr=false)
+    std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
         size_t db_idx = get_proc_db_idx(tp, is_arr);
 
-        std::string rwy;
-
-        if(is_arr)
+        if(db_idx != N_PROC_DB_SZ)
         {
-            rwy = get_arr_rwy();
-        }
-        else
-        {
-            rwy = get_dep_rwy();
-        }
+            std::string rwy;
 
-        return get_proc(rwy, proc_db[db_idx]);
+            if(is_arr)
+            {
+                rwy = arr_rwy;
+            }
+            else
+            {
+                rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+            }
+
+            return get_proc(proc_db[db_idx], rwy);
+        }
+        
+        return {};
     }
 
     // Private functions:
 
-    size_t get_proc_db_idx(ProcType tp, bool is_arr)
+    size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)
     {
         if(tp == PROC_TYPE_SID && is_arr)
         {
@@ -180,7 +185,7 @@ namespace test
         return tp + N_ARR_DB_OFFSET * is_arr;
     }
 
-    std::vector<std::string> FplnInt::get_proc(std::string rw="", libnav::str_umap_t& db)
+    std::vector<std::string> FplnInt::get_proc(libnav::str_umap_t& db, std::string rw)
     {
         std::vector<std::string> out;
 

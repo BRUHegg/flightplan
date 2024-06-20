@@ -313,11 +313,11 @@ namespace test
         }
     }
 
-    inline void get_dep_proc(Avionics *av, std::vector<std::string>& in)
+    inline void get_proc(Avionics *av, std::vector<std::string>& in)
     {
-        if(in.size() != 1)
+        if(in.size() != 2)
         {
-            std::cout << "Command expects 1 argument: {procedure type}\n";
+            std::cout << "Command expects 2 argument: {procedure type}, {DEP/ARR}\n";
             return;
         }
 
@@ -329,35 +329,16 @@ namespace test
             return;
         }
 
-        std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), false);
+        bool is_arr = in[1] != "DEP";
 
-        for(auto i: procs)
+        if(is_arr || in[1] == "DEP")
         {
-            std::cout << i << "\n";
-        }
-    }
+            std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), is_arr);
 
-    inline void get_arr_proc(Avionics *av, std::vector<std::string>& in)
-    {
-        if(in.size() != 1)
-        {
-            std::cout << "Command expects 1 argument: {procedure type}\n";
-            return;
-        }
-
-        int tmp = strutils::stoi_with_strip(in[0]);
-
-        if(tmp < 0 || tmp > 2)
-        {
-            std::cout << "procedure type entry out of range\n";
-            return;
-        }
-
-        std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), true);
-
-        for(auto i: procs)
-        {
-            std::cout << i << "\n";
+            for(auto i: procs)
+            {
+                std::cout << i << "\n";
+            }
         }
     }
 
@@ -374,7 +355,6 @@ namespace test
         {"setarrrwy", set_arr_rwy},
         {"getdeprwys", get_dep_rwys},
         {"getarrrwys", get_arr_rwys},
-        {"getdeproc", get_dep_proc},
-        {"getarrproc", get_arr_proc},
+        {"getproc", get_proc},
         };
 }
