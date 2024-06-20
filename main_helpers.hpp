@@ -313,6 +313,54 @@ namespace test
         }
     }
 
+    inline void get_dep_proc(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {procedure type}\n";
+            return;
+        }
+
+        int tmp = strutils::stoi_with_strip(in[0]);
+
+        if(tmp < 0 || tmp > 2)
+        {
+            std::cout << "procedure type entry out of range\n";
+            return;
+        }
+
+        std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), false);
+
+        for(auto i: procs)
+        {
+            std::cout << i << "\n";
+        }
+    }
+
+    inline void get_arr_proc(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {procedure type}\n";
+            return;
+        }
+
+        int tmp = strutils::stoi_with_strip(in[0]);
+
+        if(tmp < 0 || tmp > 2)
+        {
+            std::cout << "procedure type entry out of range\n";
+            return;
+        }
+
+        std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), true);
+
+        for(auto i: procs)
+        {
+            std::cout << i << "\n";
+        }
+    }
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
@@ -326,5 +374,7 @@ namespace test
         {"setarrrwy", set_arr_rwy},
         {"getdeprwys", get_dep_rwys},
         {"getarrrwys", get_arr_rwys},
+        {"getdeproc", get_dep_proc},
+        {"getarrproc", get_arr_proc},
         };
 }

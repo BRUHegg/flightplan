@@ -10,19 +10,32 @@ namespace test
             std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path):
         FlightPlan(apt_db, nav_db, cifp_path)
     {
-
+        proc_db.resize(N_PROC_DB_SZ);
     }
 
     libnav::DbErr FplnInt::set_dep(std::string icao)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
         libnav::DbErr out = set_arpt(icao, &departure);
-        if(arrival != nullptr && departure != nullptr && departure->icao_code == icao
+        if(departure != nullptr && departure->icao_code == icao
             && out != libnav::DbErr::ERR_NONE)
         {
-            delete arrival;
-            arrival = nullptr;
+            dep_rnw = departure->get_rwy_db();
+            proc_db[PROC_TYPE_SID] = departure->get_all_sids();
+            proc_db[PROC_TYPE_STAR] = departure->get_all_stars();
+            proc_db[PROC_TYPE_APPCH] = departure->get_all_appch();
+
+            // If there is an arrival and departure was changed, clear arrival data
+            if(arrival != nullptr)
+            {
+                arr_rnw.clear();
+                proc_db[N_ARR_DB_OFFSET+PROC_TYPE_STAR].clear();
+                proc_db[N_ARR_DB_OFFSET+PROC_TYPE_APPCH].clear();
+                delete arrival;
+                arrival = nullptr;
+            }
         }
+        
         return out;
     }
 
@@ -46,6 +59,13 @@ namespace test
         if(err != libnav::DbErr::ERR_NONE)
         {
             arr_rwy = "";
+
+            if(arrival != nullptr)
+            {
+                arr_rnw = arrival->get_rwy_db();
+                proc_db[N_ARR_DB_OFFSET+PROC_TYPE_STAR] = arrival->get_all_stars();
+                proc_db[N_ARR_DB_OFFSET+PROC_TYPE_APPCH] = arrival->get_all_appch();
+            }
         }
         return err;
     }
@@ -81,26 +101,23 @@ namespace test
     bool FplnInt::set_dep_rwy(std::string& rwy)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(departure != nullptr)
+
+        if(dep_rnw.find(rwy) != dep_rnw.end())
         {
-            auto rwy_db = departure->get_rwy_db();
+            libnav::arinc_rwy_data_t rwy_data = dep_rnw[rwy];
 
-            if(rwy_db.find(rwy) != rwy_db.end())
-            {
-                libnav::arinc_rwy_data_t rwy_data = rwy_db[rwy];
+            leg_t ins_leg;
+            ins_leg.leg_type = "IF";
+            ins_leg.main_fix.id = rwy;
+            ins_leg.main_fix.data.pos = rwy_data.pos;
 
-                leg_t ins_leg;
-                ins_leg.leg_type = "IF";
-                ins_leg.main_fix.id = rwy;
-                ins_leg.main_fix.data.pos = rwy_data.pos;
+            std::vector<leg_t> legs = {};
 
-                std::vector<leg_t> legs = {};
-
-                fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
-                add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
-                return true;
-            }
+            fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
+            add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
+            return true;
         }
+
         return false;
     }
 
@@ -116,16 +133,11 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
-        if(arrival != nullptr)
+        if(arr_rnw.find(rwy) != arr_rnw.end())
         {
-            auto rwy_db = arrival->get_rwy_db();
-            
-            if(rwy_db.find(rwy) != rwy_db.end())
-            {
-                arr_rwy = rwy;
+            arr_rwy = rwy;
 
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -137,7 +149,72 @@ namespace test
         return arr_rwy;
     }
 
+    std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr=false)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        size_t db_idx = get_proc_db_idx(tp, is_arr);
+
+        std::string rwy;
+
+        if(is_arr)
+        {
+            rwy = get_arr_rwy();
+        }
+        else
+        {
+            rwy = get_dep_rwy();
+        }
+
+        return get_proc(rwy, proc_db[db_idx]);
+    }
+
     // Private functions:
 
+    size_t get_proc_db_idx(ProcType tp, bool is_arr)
+    {
+        if(tp == PROC_TYPE_SID && is_arr)
+        {
+            return N_PROC_DB_SZ;
+        }
 
+        return tp + N_ARR_DB_OFFSET * is_arr;
+    }
+
+    std::vector<std::string> FplnInt::get_proc(std::string rw="", libnav::str_umap_t& db)
+    {
+        std::vector<std::string> out;
+
+        for(auto i: db)
+        {
+            if(rw != "" && i.second.find(rw) == i.second.end())
+            {
+                continue;
+            }
+            out.push_back(i.first);
+        }
+
+        return out;
+    }
+
+    std::vector<std::string> FplnInt::get_proc_trans(std::string proc, libnav::str_umap_t& db, 
+        libnav::arinc_rwy_db_t& rwy_db, bool is_rwy)
+    {
+        std::vector<std::string> out;
+
+        assert(db.find(proc) != db.end());
+
+        for(auto i: db[proc])
+        {
+            if(is_rwy && rwy_db.find(i) != rwy_db.end())
+            {
+                out.push_back(i);
+            }
+            else if(!is_rwy && rwy_db.find(i) == rwy_db.end())
+            {
+                out.push_back(i);
+            }
+        }
+
+        return out;
+    }
 } // namespace test
