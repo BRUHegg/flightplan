@@ -1,5 +1,6 @@
 build/
 .vscode/
 libnavtest
+libnavtest.exe
 777_arpt.dat
 777_rnw.dat
