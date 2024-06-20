@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include "fpln/flightpln_int.hpp"
+#include <libnav/geo_utils.hpp>
 
 #define UNUSED(x) (void)(x)
 
@@ -317,7 +318,7 @@ namespace test
     {
         if(in.size() != 2)
         {
-            std::cout << "Command expects 2 argument: {procedure type}, {DEP/ARR}\n";
+            std::cout << "Command expects 2 arguments: {procedure type}, {DEP/ARR}\n";
             return;
         }
 
@@ -342,6 +343,26 @@ namespace test
         }
     }
 
+    inline void print_legs(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 0)
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        auto legs = av->get_legs_list();
+
+        for(auto i: legs)
+        {
+            double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
+            double lon_deg = i.data.leg.main_fix.data.pos.lon_rad * geo::RAD_TO_DEG;
+            std::string pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
+
+            std::cout << pos << "\n";
+        }
+    }
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
@@ -356,5 +377,6 @@ namespace test
         {"getdeprwys", get_dep_rwys},
         {"getarrrwys", get_arr_rwys},
         {"getproc", get_proc},
+        {"plegs", print_legs}
         };
 }
