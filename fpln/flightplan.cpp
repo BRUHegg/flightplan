@@ -28,6 +28,8 @@ namespace test
         fpl_refs = std::vector<fpl_ref_t>(N_FPL_REF_SZ, EmptyRef);
         fpl_refs[0].ptr = &seg_list.head;
 
+        seg_list.head.data.is_discon = false;
+        seg_list.tail.data.is_discon = false;
         seg_list.head.data.end = &leg_list.head;
         seg_list.tail.data.end = &leg_list.tail;
 
