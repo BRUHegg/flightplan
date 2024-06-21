@@ -17,6 +17,9 @@ namespace test
     constexpr size_t N_ARR_DB_OFFSET = 2;
 
 
+    typedef libnav::arinc_leg_seq_t (*leg_func)(std::string&, std::string&);
+
+
     class FplnInt: public FlightPlan
     {
     public:
@@ -53,6 +56,8 @@ namespace test
 
         std::vector<std::string> get_arpt_proc_trans(ProcType tp, bool is_rwy=false, bool is_arr=false);
 
+        bool set_arpt_proc(ProcType tp, std::string proc_nm, bool is_arr=false);
+
     private:
         std::string arr_rwy;
 
@@ -67,5 +72,7 @@ namespace test
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
+
+        bool set_sid(std::string sid_nm);
     };
 } // namespace test

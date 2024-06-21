@@ -343,6 +343,31 @@ namespace test
         }
     }
 
+    inline void set_proc(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 3)
+        {
+            std::cout << "Command expects 3 arguments: {procedure type}, {proc name}, {DEP/ARR}\n";
+            return;
+        }
+
+        int tmp = strutils::stoi_with_strip(in[0]);
+
+        if(tmp < 0 || tmp > 2)
+        {
+            std::cout << "procedure type entry out of range\n";
+            return;
+        }
+
+        bool is_arr = in[2] != "DEP";
+        bool ret = av->fpl->set_arpt_proc(ProcType(tmp), in[1], is_arr);
+
+        if(!ret)
+        {
+            std::cout << "Failed to set procedure\n";
+        }
+    }
+
     inline void print_legs(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 0)
@@ -378,6 +403,7 @@ namespace test
         {"getdeprwys", get_dep_rwys},
         {"getarrrwys", get_arr_rwys},
         {"getproc", get_proc},
+        {"setproc", set_proc},
         {"plegs", print_legs}
         };
 }

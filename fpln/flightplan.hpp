@@ -182,6 +182,8 @@ namespace test
         */
 
         void delete_range(leg_list_node_t *start, leg_list_node_t *end);
+
+        void delete_ref(fpl_segment_types ref);
         
         void delete_segment(seg_list_node_t *seg, bool leave_seg=true);
 

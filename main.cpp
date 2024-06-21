@@ -16,10 +16,10 @@ int main()
 	std::vector<std::string> pre_exec = {
 		"setdep KPDX",
 		"setarr KLAS",
-		"setdeprwy 03",
-		"setdeprwy 28L",
-		"fplinfo",
-		"getproc 0 DEP"
+		"setdeprwy 03"
+		//"setdeprwy 28L",
+		//"fplinfo",
+		//"getproc 0 DEP"
 		};
 	//pre_exec = {};
 

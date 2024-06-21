@@ -164,6 +164,19 @@ namespace test
         }
     }
 
+    void FlightPlan::delete_ref(fpl_segment_types ref)
+    {
+        size_t ref_idx = size_t(ref);
+        seg_list_node_t *seg_ptr = fpl_refs[ref_idx].ptr;
+        if(seg_ptr != nullptr)
+        {
+            leg_list_node_t *start = seg_ptr->prev->data.end;
+            leg_list_node_t *end = seg_ptr->data.end->next;
+
+            delete_range(start, end);
+        }
+    }
+
     void FlightPlan::delete_segment(seg_list_node_t *seg,bool leave_seg)
     {
         leg_list_node_t *start = seg->prev->data.end;

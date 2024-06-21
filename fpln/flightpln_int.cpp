@@ -81,11 +81,21 @@ namespace test
     std::vector<std::string> FplnInt::get_dep_rwys()
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
-        if(departure != nullptr)
+        std::vector<std::string> out = {};
+        
+        std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
+        size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
+
+        for(auto i: dep_rnw)
         {
-            return departure->get_rwys();
+            if(curr_sid != "" && 
+                proc_db[db_idx][curr_sid].find(i.first) == proc_db[db_idx][curr_sid].end())
+            {
+                continue;
+            }
+            out.push_back(i.first);
         }
-        return {};
+        return out;
     }
 
     std::vector<std::string> FplnInt::get_arr_rwys()
@@ -104,6 +114,9 @@ namespace test
 
         if(dep_rnw.find(rwy) != dep_rnw.end())
         {
+            std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
+            delete_ref(FPL_SEG_SID);
+
             libnav::arinc_rwy_data_t rwy_data = dep_rnw[rwy];
 
             leg_t ins_leg;
@@ -115,6 +128,8 @@ namespace test
 
             add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
             fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
+
+            set_sid(curr_sid);
             return true;
         }
 
@@ -173,6 +188,21 @@ namespace test
         return {};
     }
 
+    bool FplnInt::set_arpt_proc(ProcType tp, std::string proc_nm, bool is_arr)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        size_t db_idx = get_proc_db_idx(tp, is_arr);
+
+        switch(db_idx)
+        {
+        case PROC_TYPE_SID:
+            return set_sid(proc_nm);
+        default:
+            return false;
+        }
+    }
+
     // Private functions:
 
     size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)
@@ -221,5 +251,43 @@ namespace test
         }
 
         return out;
+    }
+
+    bool FplnInt::set_sid(std::string sid_nm)
+    {
+        size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
+        if(proc_db[db_idx].find(sid_nm) != proc_db[db_idx].end())
+        {
+            std::string dep_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+
+            if(dep_rwy == "")
+            {
+                delete_ref(FPL_SEG_SID);
+                fpl_refs[FPL_SEG_SID].name = sid_nm;
+            }
+            else
+            {
+                libnav::arinc_leg_seq_t legs = departure->get_sid(sid_nm, dep_rwy);
+                if(legs.size())
+                {
+                    leg_t start = legs[0];
+                    std::vector<leg_t> legs_ins;
+
+                    for(size_t i = 1; i < legs.size(); i++)
+                    {
+                        legs_ins.push_back(legs[i]);
+                    }
+
+                    add_legs(start, legs, FPL_SEG_SID, sid_nm);
+                    return true;
+                }
+                else // Case: runway doesn't belong to sid
+                {
+                    delete_ref(FPL_SEG_SID);
+                }
+            }
+        }
+
+        return false;
     }
 } // namespace test
