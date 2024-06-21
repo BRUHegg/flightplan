@@ -113,8 +113,8 @@ namespace test
 
             std::vector<leg_t> legs = {};
 
-            fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
             add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
+            fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
             return true;
         }
 
