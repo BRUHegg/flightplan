@@ -214,6 +214,24 @@ namespace test
         return {};
     }
 
+    std::vector<std::string> FplnInt::get_arpt_proc_trans(ProcType tp, bool is_rwy, bool is_arr)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        size_t ref_idx = size_t(get_seg_tp(tp));
+        std::string proc_name = fpl_refs[ref_idx].name;
+        if(proc_name != "")
+        {
+            size_t db_idx = get_proc_db_idx(tp, is_arr);
+            if(is_arr)
+            {
+                return get_proc_trans(proc_name, proc_db[db_idx], arr_rnw, is_rwy);
+            }
+            return get_proc_trans(proc_name, proc_db[db_idx], dep_rnw, is_rwy);
+        }
+        return {};
+    }
+
     bool FplnInt::set_arpt_proc(ProcType tp, std::string proc_nm, bool is_arr)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
