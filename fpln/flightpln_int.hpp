@@ -68,10 +68,14 @@ namespace test
 
         static size_t get_proc_db_idx(ProcType tp, bool is_arr=false);
 
+        static fpl_segment_types get_seg_tp(ProcType tp);
+
         static std::vector<std::string> get_proc(libnav::str_umap_t& db, std::string rw="");
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
+
+        bool unset_proc(ProcType tp, std::string& ent);
 
         bool set_sid(std::string sid_nm);
     };

@@ -389,6 +389,22 @@ namespace test
         }
     }
 
+    inline void print_seg(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 0)
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        auto segs = av->get_seg_list();
+
+        for(auto i: segs)
+        {
+            std::cout << i.data.name << " " << i.data.seg_type << "\n";
+        }
+    }
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
@@ -404,6 +420,7 @@ namespace test
         {"getarrrwys", get_arr_rwys},
         {"getproc", get_proc},
         {"setproc", set_proc},
-        {"plegs", print_legs}
+        {"plegs", print_legs},
+        {"pseg", print_seg}
         };
 }

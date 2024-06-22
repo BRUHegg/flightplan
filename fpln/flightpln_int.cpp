@@ -83,17 +83,25 @@ namespace test
         std::lock_guard<std::mutex> lock(fpl_mtx);
         std::vector<std::string> out = {};
         
-        std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
-        size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
-
-        for(auto i: dep_rnw)
+        std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+        if(curr_rwy != "")
         {
-            if(curr_sid != "" && 
-                proc_db[db_idx][curr_sid].find(i.first) == proc_db[db_idx][curr_sid].end())
+            out.push_back(curr_rwy);
+        }
+        else
+        {
+            std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
+            size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
+
+            for(auto i: dep_rnw)
             {
-                continue;
+                if(curr_sid != "" && 
+                    proc_db[db_idx][curr_sid].find(i.first) == proc_db[db_idx][curr_sid].end())
+                {
+                    continue;
+                }
+                out.push_back(i.first);
             }
-            out.push_back(i.first);
         }
         return out;
     }
@@ -114,22 +122,31 @@ namespace test
 
         if(dep_rnw.find(rwy) != dep_rnw.end())
         {
-            std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
-            delete_ref(FPL_SEG_SID);
+            std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+            if(rwy == curr_rwy)
+            {
+                delete_ref(FPL_SEG_DEP_RWY);
+            }
+            else
+            {
+                std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
+                delete_ref(FPL_SEG_SID);
 
-            libnav::arinc_rwy_data_t rwy_data = dep_rnw[rwy];
+                libnav::arinc_rwy_data_t rwy_data = dep_rnw[rwy];
 
-            leg_t ins_leg;
-            ins_leg.leg_type = "IF";
-            ins_leg.main_fix.id = rwy;
-            ins_leg.main_fix.data.pos = rwy_data.pos;
+                leg_t ins_leg;
+                ins_leg.leg_type = "IF";
+                ins_leg.main_fix.id = rwy;
+                ins_leg.main_fix.data.pos = rwy_data.pos;
 
-            std::vector<leg_t> legs = {};
+                std::vector<leg_t> legs = {};
 
-            add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
-            fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
+                add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
+                fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
 
-            set_sid(curr_sid);
+                set_sid(curr_sid);
+            }
+            
             return true;
         }
 
@@ -167,6 +184,14 @@ namespace test
     std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
+        fpl_segment_types s_tp = get_seg_tp(tp);
+        size_t tp_idx = size_t(s_tp);
+
+        if(fpl_refs[tp_idx].name != "")
+        {
+            return {fpl_refs[tp_idx].name};
+        }
+
         size_t db_idx = get_proc_db_idx(tp, is_arr);
 
         if(db_idx != N_PROC_DB_SZ)
@@ -192,15 +217,21 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
-        size_t db_idx = get_proc_db_idx(tp, is_arr);
-
-        switch(db_idx)
+        bool was_removed = unset_proc(tp, proc_nm);
+        if(!was_removed)
         {
-        case PROC_TYPE_SID:
-            return set_sid(proc_nm);
-        default:
-            return false;
+            size_t db_idx = get_proc_db_idx(tp, is_arr);
+
+            switch(db_idx)
+            {
+            case PROC_TYPE_SID:
+                return set_sid(proc_nm);
+            default:
+                return false;
+            }
         }
+
+        return false;
     }
 
     // Private functions:
@@ -213,6 +244,21 @@ namespace test
         }
 
         return tp + N_ARR_DB_OFFSET * is_arr;
+    }
+
+    fpl_segment_types FplnInt::get_seg_tp(ProcType tp)
+    {
+        switch (tp)
+        {
+        case PROC_TYPE_SID:
+            return FPL_SEG_SID;
+        case PROC_TYPE_STAR:
+            return FPL_SEG_STAR;
+        case PROC_TYPE_APPCH:
+            return FPL_SEG_APPCH;
+        default:
+            return FPL_SEG_NONE;
+        }
     }
 
     std::vector<std::string> FplnInt::get_proc(libnav::str_umap_t& db, std::string rw)
@@ -253,6 +299,19 @@ namespace test
         return out;
     }
 
+    bool FplnInt::unset_proc(ProcType tp, std::string& ent)
+    {
+        fpl_segment_types s_tp = get_seg_tp(tp);
+        size_t tp_idx = size_t(s_tp);
+
+        if(fpl_refs[tp_idx].name == ent)
+        {
+            delete_ref(s_tp);
+            return true;
+        }
+        return false;
+    }
+
     bool FplnInt::set_sid(std::string sid_nm)
     {
         size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
@@ -278,7 +337,7 @@ namespace test
                         legs_ins.push_back(legs[i]);
                     }
 
-                    add_legs(start, legs, FPL_SEG_SID, sid_nm);
+                    add_legs(start, legs_ins, FPL_SEG_SID, sid_nm);
                     return true;
                 }
                 else // Case: runway doesn't belong to sid
