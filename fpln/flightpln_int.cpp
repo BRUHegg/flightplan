@@ -125,6 +125,7 @@ namespace test
             std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
             if(rwy == curr_rwy)
             {
+                delete_ref(FPL_SEG_SID);
                 delete_ref(FPL_SEG_DEP_RWY);
             }
             else
@@ -299,7 +300,7 @@ namespace test
         return out;
     }
 
-    bool FplnInt::unset_proc(ProcType tp, std::string& ent)
+    bool FplnInt::unset_proc(ProcType tp, std::string ent)
     {
         fpl_segment_types s_tp = get_seg_tp(tp);
         size_t tp_idx = size_t(s_tp);
@@ -327,8 +328,10 @@ namespace test
             else
             {
                 libnav::arinc_leg_seq_t legs = departure->get_sid(sid_nm, dep_rwy);
+
                 if(legs.size())
                 {
+                    fpl_refs[FPL_SEG_SID].name = sid_nm;
                     leg_t start = legs[0];
                     std::vector<leg_t> legs_ins;
 

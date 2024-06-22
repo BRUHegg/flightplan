@@ -405,6 +405,17 @@ namespace test
         }
     }
 
+    inline void print_refs(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 0)
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        av->fpl->print_refs();
+    }
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
@@ -421,6 +432,7 @@ namespace test
         {"getproc", get_proc},
         {"setproc", set_proc},
         {"plegs", print_legs},
-        {"pseg", print_seg}
+        {"pseg", print_seg},
+        {"prefs", print_refs}
         };
 }

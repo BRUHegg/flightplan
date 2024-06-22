@@ -75,7 +75,7 @@ namespace test
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
 
-        bool unset_proc(ProcType tp, std::string& ent);
+        bool unset_proc(ProcType tp, std::string ent);
 
         bool set_sid(std::string sid_nm);
     };
