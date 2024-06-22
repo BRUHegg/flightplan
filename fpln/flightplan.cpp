@@ -106,7 +106,7 @@ namespace test
     {
         for(size_t i = 1; i < fpl_refs.size(); i++)
         {
-            std::cout << seg_to_str[fpl_segment_types(i)] << " ";
+            std::cout << seg_to_str[fpl_segment_types(i)] << " " << fpl_refs[i].name << " ";
             seg_list_node_t *curr = fpl_refs[i].ptr;
             if(curr != nullptr)
             {

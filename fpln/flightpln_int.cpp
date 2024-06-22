@@ -307,6 +307,7 @@ namespace test
 
         if(fpl_refs[tp_idx].name == ent)
         {
+            fpl_refs[tp_idx].name = "";
             delete_ref(s_tp);
             return true;
         }
