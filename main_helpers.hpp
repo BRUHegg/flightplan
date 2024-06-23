@@ -480,12 +480,15 @@ namespace test
         av->fpl->print_refs();
     }
 
+    inline void help(Avionics *av, std::vector<std::string>& in);
+
     std::unordered_map<std::string, cmd> cmd_map = {
         {"set", set_var},
         {"print", print},
         {"p", print},
         {"quit", quit},
         {"q", quit},
+        {"setfilt", set_filter},
         {"fplinfo", fplinfo},
         {"setdep", set_fpl_dep},
         {"setarr", set_fpl_arr},
@@ -498,6 +501,23 @@ namespace test
         {"setproc", set_proc},
         {"plegs", print_legs},
         {"pseg", print_seg},
-        {"prefs", print_refs}
+        {"prefs", print_refs},
+        {"help", help}
         };
+
+    inline void help(Avionics *av, std::vector<std::string>& in)
+    {
+        (void)av;
+        
+        if(in.size() != 0)
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        for(auto i: cmd_map)
+        {
+            std::cout << i.first << "\n";
+        }
+    }
 }
