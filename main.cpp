@@ -45,19 +45,21 @@ int main()
 		std::string in_proc = strutils::strip(in_raw, ' ');
 
 		std::vector<std::string> line_split = strutils::str_split(in_proc, ' ');
-		std::string cmd_name = line_split[0];
-		std::vector<std::string> args = std::vector<std::string>(line_split.begin() + 1, 
-			line_split.end());
-
-		if(test::cmd_map.find(cmd_name) != test::cmd_map.end())
+		if(line_split.size())
 		{
-			test::cmd_map[cmd_name](&avncs, args);
-		}
-		else
-		{
-			std::cout << "Invalid command name\n";
-		}
+			std::string cmd_name = line_split[0];
+			std::vector<std::string> args = std::vector<std::string>(line_split.begin() + 1, 
+				line_split.end());
 
+			if(test::cmd_map.find(cmd_name) != test::cmd_map.end())
+			{
+				test::cmd_map[cmd_name](&avncs, args);
+			}
+			else
+			{
+				std::cout << "Invalid command name\n";
+			}
+		}
 
 		avncs.update();
 	}
