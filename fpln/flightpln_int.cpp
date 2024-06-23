@@ -78,13 +78,13 @@ namespace test
         return "";
     }
 
-    std::vector<std::string> FplnInt::get_dep_rwys()
+    std::vector<std::string> FplnInt::get_dep_rwys(bool filter_rwy, bool filter_sid)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
         std::vector<std::string> out = {};
         
         std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
-        if(curr_rwy != "")
+        if(filter_sid && curr_rwy != "")
         {
             out.push_back(curr_rwy);
         }
@@ -95,7 +95,7 @@ namespace test
 
             for(auto i: dep_rnw)
             {
-                if(curr_sid != "" && 
+                if(filter_rwy && curr_sid != "" && 
                     proc_db[db_idx][curr_sid].find(i.first) == proc_db[db_idx][curr_sid].end())
                 {
                     continue;
@@ -123,12 +123,7 @@ namespace test
         if(dep_rnw.find(rwy) != dep_rnw.end())
         {
             std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
-            if(rwy == curr_rwy)
-            {
-                delete_ref(FPL_SEG_SID);
-                delete_ref(FPL_SEG_DEP_RWY);
-            }
-            else
+            if(rwy != curr_rwy)
             {
                 std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
                 delete_ref(FPL_SEG_SID);
@@ -147,7 +142,7 @@ namespace test
 
                 set_sid(curr_sid);
             }
-            
+
             return true;
         }
 
@@ -182,13 +177,14 @@ namespace test
         return arr_rwy;
     }
 
-    std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr)
+    std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr,
+        bool filter_rwy, bool filter_proc)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
         fpl_segment_types s_tp = get_seg_tp(tp);
         size_t tp_idx = size_t(s_tp);
 
-        if(fpl_refs[tp_idx].name != "")
+        if(filter_rwy && fpl_refs[tp_idx].name != "")
         {
             return {fpl_refs[tp_idx].name};
         }
@@ -197,15 +193,18 @@ namespace test
 
         if(db_idx != N_PROC_DB_SZ)
         {
-            std::string rwy;
+            std::string rwy = "";
 
-            if(is_arr)
+            if(filter_proc)
             {
-                rwy = arr_rwy;
-            }
-            else
-            {
-                rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+                if(is_arr)
+                {
+                    rwy = arr_rwy;
+                }
+                else
+                {
+                    rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+                }
             }
 
             return get_proc(proc_db[db_idx], rwy);
@@ -236,18 +235,14 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
-        bool was_removed = unset_proc(tp, proc_nm);
-        if(!was_removed)
-        {
-            size_t db_idx = get_proc_db_idx(tp, is_arr);
+        size_t db_idx = get_proc_db_idx(tp, is_arr);
 
-            switch(db_idx)
-            {
-            case PROC_TYPE_SID:
-                return set_sid(proc_nm);
-            default:
-                return false;
-            }
+        switch(db_idx)
+        {
+        case PROC_TYPE_SID:
+            return set_sid(proc_nm);
+        default:
+            return false;
         }
 
         return false;

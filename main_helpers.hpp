@@ -23,6 +23,8 @@ namespace test
         double leg_list_id;
         double seg_list_id;
 
+        bool flt_rwy, flt_proc, flt_trans;
+
         std::shared_ptr<libnav::ArptDB> arpt_db_ptr;
         std::shared_ptr<libnav::NavaidDB> navaid_db_ptr;
 
@@ -45,8 +47,13 @@ namespace test
             env_vars["ac_lat"] = strutils::double_to_str(def_lat, 8);
             env_vars["ac_lon"] = strutils::double_to_str(def_lon, 8);
             env_vars["legs_sbpg"] = "0";
+
             leg_list_id = -1;
             seg_list_id = -1;
+
+            flt_rwy = false;
+            flt_proc = false;
+            flt_trans = false;
 
             cifp_dir_path = cifp_path;
 
@@ -201,6 +208,33 @@ namespace test
         std::exit(0);
     }
 
+    inline void set_filter(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {filter type(0 - runway, 1 - procedure, 2 - transition)}\n";
+            return;
+        }
+
+        int flt_type = strutils::stoi_with_strip(in[0]);
+        if(flt_type == 0)
+        {
+            av->flt_rwy = !(av->flt_rwy);
+        }
+        else if(flt_type == 1)
+        {
+            av->flt_proc = !(av->flt_proc);
+        }
+        else if(flt_type == 2)
+        {
+            av->flt_trans = !(av->flt_trans);
+        }
+        else
+        {
+            std::cout << "Filter type out of range\n";
+        }
+    }
+
     inline void fplinfo(Avionics* av, std::vector<std::string>& in)
     {
         if(in.size())
@@ -292,7 +326,7 @@ namespace test
             return;
         }
 
-        std::vector<std::string> rwys = av->fpl->get_dep_rwys();
+        std::vector<std::string> rwys = av->fpl->get_dep_rwys(av->flt_rwy, av->flt_proc);
         for(auto i: rwys)
         {
             std::cout << i << "\n";
@@ -334,7 +368,8 @@ namespace test
 
         if(in[1] == "ARR" || in[1] == "DEP")
         {
-            std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), is_arr);
+            std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), is_arr, 
+                av->flt_rwy, av->flt_proc);
 
             for(auto i: procs)
             {

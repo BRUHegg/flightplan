@@ -38,7 +38,7 @@ namespace test
 
         // Runway functions:
 
-        std::vector<std::string> get_dep_rwys();
+        std::vector<std::string> get_dep_rwys(bool filter_rwy=false, bool filter_sid=false);
 
         std::vector<std::string> get_arr_rwys();
 
@@ -52,7 +52,8 @@ namespace test
 
         // Airport procedure functions:
 
-        std::vector<std::string> get_arpt_proc(ProcType tp, bool is_arr=false);
+        std::vector<std::string> get_arpt_proc(ProcType tp, bool is_arr=false, 
+            bool filter_rwy=false, bool filter_proc=false);
 
         std::vector<std::string> get_arpt_proc_trans(ProcType tp, bool is_rwy=false, bool is_arr=false);
 

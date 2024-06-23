@@ -177,7 +177,7 @@ namespace test
         }
     }
 
-    void FlightPlan::delete_segment(seg_list_node_t *seg,bool leave_seg)
+    void FlightPlan::delete_segment(seg_list_node_t *seg, bool leave_seg)
     {
         leg_list_node_t *start = seg->prev->data.end;
         leg_list_node_t *end;
@@ -211,6 +211,7 @@ namespace test
             seg_add->data.name = seg_name;
             seg_add->data.seg_type = seg_tp;
             seg_add->data.is_direct = is_direct;
+            seg_add->data.is_discon = false;
 
             for(size_t i = 0; i < legs.size(); i++)
             {
