@@ -3,6 +3,30 @@
 
 namespace test
 {
+    std::string get_appr_rwy(std::string& appr)
+    {
+        std::string rw;
+
+        for(size_t i = 0; i < appr.size(); i++)
+        {
+            if(rw.size() < 2 && appr[i] >= '0' && appr[i] <= '9')
+            {
+                rw.push_back(appr[i]);
+            }
+            else if(rw.size() && (appr[i] == 'L' || appr[i] == 'R' || appr[i] == 'C'))
+            {
+                rw.push_back(appr[i]);
+                break;
+            }
+            else if(rw.size())
+            {
+                break;
+            }
+        }
+
+        return strutils::normalize_rnw_id(rw);
+    }
+
     // FplnInt member functions:
     // Public functions:
 
@@ -244,6 +268,8 @@ namespace test
         {
         case PROC_TYPE_SID:
             return set_sid(proc_nm);
+        case PROC_TYPE_APPCH+N_ARR_DB_OFFSET:
+            return set_appch(proc_nm);
         default:
             return false;
         }
@@ -394,8 +420,34 @@ namespace test
         return false;
     }
 
+    bool FplnInt::set_appch(std::string appch)
+    {
+        size_t db_idx = get_proc_db_idx(PROC_TYPE_APPCH, true);
+        if(proc_db[db_idx].find(appch) != proc_db[db_idx].end())
+        {
+            std::string tmp = NONE_TRANS;
+            libnav::arinc_leg_seq_t legs = arrival->get_appch(appch, tmp);
+
+            bool added = add_fpl_seg(legs, FPL_SEG_APPCH, appch);
+            if(added)
+            {
+                arr_rwy = get_appr_rwy(appch);
+                return true;
+            }
+        }
+
+        arr_rwy = "";
+        delete_ref(FPL_SEG_APPCH);
+        return false;
+    }
+
     bool FplnInt::set_proc_trans(ProcType tp, std::string trans, bool is_arr)
     {
+        if(trans == "NONE")
+        {
+            trans = "";
+        }
+
         size_t db_idx = get_proc_db_idx(tp, is_arr);
         size_t seg_tp = size_t(get_proc_tp(tp));
         fpl_segment_types t_tp = get_trans_tp(tp);

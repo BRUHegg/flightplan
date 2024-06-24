@@ -15,9 +15,10 @@ namespace test
 
     constexpr size_t N_PROC_DB_SZ = 5;
     constexpr size_t N_ARR_DB_OFFSET = 2;
+    const std::string NONE_TRANS = "NONE";
 
 
-    typedef libnav::arinc_leg_seq_t (*leg_func)(std::string&, std::string&);
+    std::string get_appr_rwy(std::string& appr);
 
 
     class FplnInt: public FlightPlan
@@ -83,6 +84,8 @@ namespace test
         bool add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm);
 
         bool set_sid(std::string sid_nm);
+
+        bool set_appch(std::string appch);
 
         bool set_proc_trans(ProcType tp, std::string trans, bool is_arr=false);
     };
