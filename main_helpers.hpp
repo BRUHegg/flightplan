@@ -452,14 +452,24 @@ namespace test
 
         auto legs = av->get_legs_list();
 
+        size_t cnt = 0;
         for(auto i: legs)
         {
-            double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
-            double lon_deg = i.data.leg.main_fix.data.pos.lon_rad * geo::RAD_TO_DEG;
-            std::string pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
-            std::string misc_data = i.data.leg.main_fix.id + " " + i.data.leg.leg_type;
+            if(cnt && cnt < legs.size()-1)
+            {
+                if(i.data.is_discon)
+                {
+                    std::cout << "DISCONTINUITY\n";
+                    continue;
+                }
+                double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
+                double lon_deg = i.data.leg.main_fix.data.pos.lon_rad * geo::RAD_TO_DEG;
+                std::string pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
+                std::string misc_data = i.data.leg.main_fix.id + " " + i.data.leg.leg_type;
 
-            std::cout << misc_data + " " + pos << "\n";
+                std::cout << misc_data + " " + pos << "\n";
+            }
+            cnt++;
         }
     }
 

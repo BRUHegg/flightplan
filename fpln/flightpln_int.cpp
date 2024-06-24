@@ -427,16 +427,20 @@ namespace test
         {
             std::string tmp = NONE_TRANS;
             libnav::arinc_leg_seq_t legs = arrival->get_appch(appch, tmp);
+            std::string curr_tr = fpl_refs[FPL_SEG_APPCH].name;
+            delete_ref(FPL_SEG_APPCH_TRANS);
 
             bool added = add_fpl_seg(legs, FPL_SEG_APPCH, appch);
             if(added)
             {
                 arr_rwy = get_appr_rwy(appch);
+                set_proc_trans(PROC_TYPE_APPCH, curr_tr, true);
                 return true;
             }
         }
 
         arr_rwy = "";
+        delete_ref(FPL_SEG_APPCH_TRANS);
         delete_ref(FPL_SEG_APPCH);
         return false;
     }
