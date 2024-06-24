@@ -409,9 +409,10 @@ namespace test
 
     inline void set_proc(Avionics *av, std::vector<std::string>& in)
     {
-        if(in.size() != 3)
+        if(in.size() != 4)
         {
-            std::cout << "Command expects 3 arguments: {procedure type}, {proc name}, {DEP/ARR}\n";
+            std::cout << "Command expects 4 arguments: {procedure type}, {proc name}, \
+                {DEP/ARR}, {TRANS/PROC}\n";
             return;
         }
 
@@ -424,11 +425,20 @@ namespace test
         }
 
         bool is_arr = in[2] != "DEP";
-        bool ret = av->fpl->set_arpt_proc(ProcType(tmp), in[1], is_arr);
+        bool is_trans = in[3] != "PROC";
+        bool ret = false;
+        if(is_trans)
+        {
+            ret = av->fpl->set_arpt_proc_trans(ProcType(tmp), in[1], is_arr);
+        }
+        else
+        {
+            ret = av->fpl->set_arpt_proc(ProcType(tmp), in[1], is_arr);
+        }
 
         if(!ret)
         {
-            std::cout << "Failed to set procedure\n";
+            std::cout << "Failed to set procedure/trantition\n";
         }
     }
 

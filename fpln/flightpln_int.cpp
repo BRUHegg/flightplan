@@ -126,6 +126,8 @@ namespace test
             if(rwy != curr_rwy)
             {
                 std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
+                std::string curr_trans = fpl_refs[FPL_SEG_SID_TRANS].name;
+                delete_ref(FPL_SEG_SID_TRANS);
                 delete_ref(FPL_SEG_SID);
 
                 libnav::arinc_rwy_data_t rwy_data = dep_rnw[rwy];
@@ -141,6 +143,7 @@ namespace test
                 fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
 
                 set_sid(curr_sid);
+                set_proc_trans(PROC_TYPE_SID, curr_trans, false);
             }
 
             return true;
@@ -181,7 +184,7 @@ namespace test
         bool filter_rwy, bool filter_proc)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
-        fpl_segment_types s_tp = get_seg_tp(tp);
+        fpl_segment_types s_tp = get_proc_tp(tp);
         size_t tp_idx = size_t(s_tp);
 
         if(filter_rwy && fpl_refs[tp_idx].name != "")
@@ -217,7 +220,7 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
-        size_t ref_idx = size_t(get_seg_tp(tp));
+        size_t ref_idx = size_t(get_proc_tp(tp));
         std::string proc_name = fpl_refs[ref_idx].name;
         if(proc_name != "")
         {
@@ -248,6 +251,13 @@ namespace test
         return false;
     }
 
+    bool FplnInt::set_arpt_proc_trans(ProcType tp, std::string trans, bool is_arr)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        return set_proc_trans(tp, trans, is_arr);
+    }
+
     // Private functions:
 
     size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)
@@ -260,7 +270,7 @@ namespace test
         return tp + N_ARR_DB_OFFSET * is_arr;
     }
 
-    fpl_segment_types FplnInt::get_seg_tp(ProcType tp)
+    fpl_segment_types FplnInt::get_proc_tp(ProcType tp)
     {
         switch (tp)
         {
@@ -270,6 +280,21 @@ namespace test
             return FPL_SEG_STAR;
         case PROC_TYPE_APPCH:
             return FPL_SEG_APPCH;
+        default:
+            return FPL_SEG_NONE;
+        }
+    }
+
+    fpl_segment_types FplnInt::get_trans_tp(ProcType tp)
+    {
+        switch (tp)
+        {
+        case PROC_TYPE_SID:
+            return FPL_SEG_SID_TRANS;
+        case PROC_TYPE_STAR:
+            return FPL_SEG_STAR_TRANS;
+        case PROC_TYPE_APPCH:
+            return FPL_SEG_APPCH_TRANS;
         default:
             return FPL_SEG_NONE;
         }
@@ -313,17 +338,25 @@ namespace test
         return out;
     }
 
-    bool FplnInt::unset_proc(ProcType tp, std::string ent)
+    bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm)
     {
-        fpl_segment_types s_tp = get_seg_tp(tp);
-        size_t tp_idx = size_t(s_tp);
-
-        if(fpl_refs[tp_idx].name == ent)
+        if(legs.size())
         {
-            fpl_refs[tp_idx].name = "";
-            delete_ref(s_tp);
+            size_t seg_idx = size_t(seg_tp);
+            leg_t start = legs[0];
+            std::vector<leg_t> legs_ins;
+
+            for(size_t i = 1; i < legs.size(); i++)
+            {
+                legs_ins.push_back(legs[i]);
+            }
+
+            add_legs(start, legs_ins, seg_tp, ref_nm);
+            fpl_refs[seg_idx].name = ref_nm;
+
             return true;
         }
+
         return false;
     }
 
@@ -336,6 +369,7 @@ namespace test
 
             if(dep_rwy == "")
             {
+                delete_ref(FPL_SEG_SID_TRANS);
                 delete_ref(FPL_SEG_SID);
                 fpl_refs[FPL_SEG_SID].name = sid_nm;
             }
@@ -343,25 +377,73 @@ namespace test
             {
                 libnav::arinc_leg_seq_t legs = departure->get_sid(sid_nm, dep_rwy);
 
-                if(legs.size())
-                {
-                    fpl_refs[FPL_SEG_SID].name = sid_nm;
-                    leg_t start = legs[0];
-                    std::vector<leg_t> legs_ins;
-
-                    for(size_t i = 1; i < legs.size(); i++)
-                    {
-                        legs_ins.push_back(legs[i]);
-                    }
-
-                    add_legs(start, legs_ins, FPL_SEG_SID, sid_nm);
-                    return true;
-                }
-                else // Case: runway doesn't belong to sid
+                std::string trans_nm = fpl_refs[FPL_SEG_SID_TRANS].name;
+                delete_ref(FPL_SEG_SID_TRANS);
+                bool retval = add_fpl_seg(legs, FPL_SEG_SID, sid_nm);
+                if(!retval) // Case: runway doesn't belong to sid
                 {
                     delete_ref(FPL_SEG_SID);
                 }
+
+                set_proc_trans(PROC_TYPE_SID, trans_nm, false);
+                
+                return retval;
             }
+        }
+
+        return false;
+    }
+
+    bool FplnInt::set_proc_trans(ProcType tp, std::string trans, bool is_arr)
+    {
+        size_t db_idx = get_proc_db_idx(tp, is_arr);
+        size_t seg_tp = size_t(get_proc_tp(tp));
+        fpl_segment_types t_tp = get_trans_tp(tp);
+        size_t t_idx = size_t(t_tp);
+
+        std::string curr_proc = fpl_refs[seg_tp].name;
+        
+        if(curr_proc != "" && fpl_refs[seg_tp].ptr == nullptr && 
+            proc_db[db_idx][curr_proc].find(trans) != proc_db[db_idx][curr_proc].end())
+        {
+            delete_ref(t_tp);
+            fpl_refs[t_idx].name = trans;
+            return false;
+        }
+        else if(curr_proc == "")
+        {
+            delete_ref(t_tp);
+            return false;
+        }
+        libnav::Airport *apt = departure;
+        if(is_arr)
+        {
+            apt = arrival;
+        }
+
+        libnav::arinc_leg_seq_t legs = {};
+
+        if(tp == PROC_TYPE_SID)
+        {
+            legs = apt->get_sid(curr_proc, trans);
+        }
+        else if(tp == PROC_TYPE_STAR)
+        {
+            legs = apt->get_star(curr_proc, trans);
+        }
+        else if(tp == PROC_TYPE_APPCH)
+        {
+            legs = apt->get_appch(curr_proc, trans);
+        }
+        
+        bool added = add_fpl_seg(legs, t_tp, trans);
+        if(!added)
+        {
+            delete_ref(t_tp);
+        }
+        else
+        {
+            return true;
         }
 
         return false;

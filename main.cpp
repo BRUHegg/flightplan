@@ -22,7 +22,7 @@ int main()
 		//"setdeprwy 28L",
 		//"fplinfo",
 		//"getproc 0 DEP"
-		};
+	};
 	//pre_exec = {};
 
 	size_t i = 0;
