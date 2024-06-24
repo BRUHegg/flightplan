@@ -76,7 +76,8 @@ namespace test
 
         static fpl_segment_types get_trans_tp(ProcType tp);
 
-        static std::vector<std::string> get_proc(libnav::str_umap_t& db, std::string rw="");
+        static std::vector<std::string> get_proc(libnav::str_umap_t& db, std::string rw="", 
+            bool is_appch=false);
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);

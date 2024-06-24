@@ -234,7 +234,7 @@ namespace test
                 }
             }
 
-            return get_proc(proc_db[db_idx], rwy);
+            return get_proc(proc_db[db_idx], rwy, tp == PROC_TYPE_APPCH);
         }
         
         return {};
@@ -326,15 +326,24 @@ namespace test
         }
     }
 
-    std::vector<std::string> FplnInt::get_proc(libnav::str_umap_t& db, std::string rw)
+    std::vector<std::string> FplnInt::get_proc(libnav::str_umap_t& db, std::string rw, bool is_appch)
     {
         std::vector<std::string> out;
 
         for(auto i: db)
         {
-            if(rw != "" && i.second.find(rw) == i.second.end())
+            if(rw != "" && i.second.find(rw) == i.second.end() && !is_appch)
             {
                 continue;
+            }
+            else if(is_appch && rw != "")
+            {
+                std::string curr_nm = i.first;
+                std::string c_rnw = get_appr_rwy(curr_nm);
+                if(c_rnw != rw)
+                {
+                    continue;
+                }
             }
             out.push_back(i.first);
         }
