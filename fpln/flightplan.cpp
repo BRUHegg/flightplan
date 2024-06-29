@@ -134,7 +134,7 @@ namespace test
             return libnav::DbErr::ERR_NONE;
         }
         libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
-            navaid_db, cifp_dir_path);
+            navaid_db, cifp_dir_path, ".dat", true, APPR_PREF_MOD);
         libnav::DbErr err_cd = tmp->err_code;
         if(err_cd != libnav::DbErr::SUCCESS && err_cd != libnav::DbErr::PARTIAL_LOAD)
         {

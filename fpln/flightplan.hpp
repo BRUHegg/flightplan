@@ -33,6 +33,19 @@ namespace test
 
     typedef libnav::arinc_leg_t leg_t;
 
+    const libnav::appr_pref_db_t APPR_PREF_MOD = { // Prefixes for all approaches supported by 777's FMC
+        {'B', "LOC"},
+        {'G', "IGS"},
+        {'I', "ILS"},
+        {'N', "NDB"},
+        {'Q', "NDME"},
+        {'R', "RNV"},
+        {'S', "VOR"},
+        {'V', "VOR"},
+        {'U', "SDF"},
+        {'X', "LDA"}
+    };
+
 
     struct leg_list_data_t;
 
