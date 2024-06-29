@@ -277,7 +277,7 @@ namespace test
         {
             ins_seg = next;
             next_seg = ins_seg;
-            seg_tp = ins_seg->prev->data.seg_type;
+            //seg_tp = ins_seg->prev->data.seg_type;
         }
 
         std::vector<leg_t> legs_add;

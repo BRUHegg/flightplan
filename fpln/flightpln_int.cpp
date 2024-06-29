@@ -375,7 +375,8 @@ namespace test
         return out;
     }
 
-    bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm)
+    bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm,
+        seg_list_node_t *next)
     {
         if(legs.size())
         {
@@ -388,7 +389,7 @@ namespace test
                 legs_ins.push_back(legs[i]);
             }
 
-            add_legs(start, legs_ins, seg_tp, ref_nm);
+            add_legs(start, legs_ins, seg_tp, ref_nm, next);
             fpl_refs[seg_idx].name = ref_nm;
 
             return true;
@@ -434,11 +435,19 @@ namespace test
             else
             {
                 libnav::arinc_leg_seq_t legs;
-                
+                libnav::arinc_leg_seq_t legs_add;  // Additional legs. Inserted if there is a blank transition
+                std::string none_trans = NONE_TRANS;
+
                 if(!is_star)
+                {
                     legs = departure->get_sid(proc_nm, rwy);
+                    legs_add = departure->get_sid(proc_nm, none_trans);
+                }
                 else
+                {
                     legs = arrival->get_star(proc_nm, rwy);
+                    legs_add = arrival->get_star(proc_nm, none_trans);
+                }
 
                 std::string trans_nm = fpl_refs[size_t(trans_seg)].name;
                 delete_ref(trans_seg);
@@ -446,6 +455,10 @@ namespace test
                 if(!retval) // Case: runway doesn't belong to sid
                 {
                     delete_ref(proc_seg);
+                }
+                else
+                {
+                    retval = add_fpl_seg(legs_add, proc_seg, proc_nm, fpl_refs[size_t(proc_seg)].ptr);
                 }
 
                 set_proc_trans(proc_tp, trans_nm, is_star);
@@ -484,10 +497,10 @@ namespace test
 
     bool FplnInt::set_proc_trans(ProcType tp, std::string trans, bool is_arr)
     {
-        //if(trans == "NONE")
-        //{
-        //    trans = "";
-        //}
+        if(trans == "NONE")
+        {
+            trans = "";
+        }
 
         size_t db_idx = get_proc_db_idx(tp, is_arr);
         size_t seg_tp = size_t(get_proc_tp(tp));
