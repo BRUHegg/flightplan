@@ -166,7 +166,7 @@ namespace test
                 add_legs(ins_leg, legs, FPL_SEG_DEP_RWY, rwy);
                 fpl_refs[FPL_SEG_DEP_RWY].name = rwy;
 
-                set_sid(curr_sid);
+                set_sid_star(curr_sid);
                 set_proc_trans(PROC_TYPE_SID, curr_trans, false);
             }
 
@@ -267,7 +267,9 @@ namespace test
         switch(db_idx)
         {
         case PROC_TYPE_SID:
-            return set_sid(proc_nm);
+            return set_sid_star(proc_nm);
+        case PROC_TYPE_STAR+N_ARR_DB_OFFSET:
+            return set_sid_star(proc_nm, true);
         case PROC_TYPE_APPCH+N_ARR_DB_OFFSET:
             return set_appch(proc_nm);
         default:
@@ -395,32 +397,58 @@ namespace test
         return false;
     }
 
-    bool FplnInt::set_sid(std::string sid_nm)
+    bool FplnInt::set_sid_star(std::string proc_nm, bool is_star)
     {
-        size_t db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
-        if(proc_db[db_idx].find(sid_nm) != proc_db[db_idx].end())
+        size_t db_idx;
+        ProcType proc_tp;
+        fpl_segment_types proc_seg, trans_seg;
+        if(!is_star) 
         {
-            std::string dep_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+            proc_tp = PROC_TYPE_SID;
+            db_idx = get_proc_db_idx(PROC_TYPE_SID, false);
+            proc_seg = FPL_SEG_SID;
+            trans_seg = FPL_SEG_SID_TRANS;
+        }
+        else
+        {
+            proc_tp = PROC_TYPE_STAR;
+            db_idx = get_proc_db_idx(PROC_TYPE_STAR, true);
+            proc_seg = FPL_SEG_STAR;
+            trans_seg = FPL_SEG_STAR_TRANS;
+        }
 
-            if(dep_rwy == "")
+        if(proc_db[db_idx].find(proc_nm) != proc_db[db_idx].end())
+        {
+            std::string rwy;
+            if(!is_star)
+                rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
+            else
+                rwy = arr_rwy;
+
+            if(rwy == "")
             {
-                delete_ref(FPL_SEG_SID_TRANS);
-                delete_ref(FPL_SEG_SID);
-                fpl_refs[FPL_SEG_SID].name = sid_nm;
+                delete_ref(trans_seg);
+                delete_ref(proc_seg);
+                fpl_refs[size_t(proc_seg)].name = proc_nm;
             }
             else
             {
-                libnav::arinc_leg_seq_t legs = departure->get_sid(sid_nm, dep_rwy);
+                libnav::arinc_leg_seq_t legs;
+                
+                if(!is_star)
+                    legs = departure->get_sid(proc_nm, rwy);
+                else
+                    legs = arrival->get_star(proc_nm, rwy);
 
-                std::string trans_nm = fpl_refs[FPL_SEG_SID_TRANS].name;
-                delete_ref(FPL_SEG_SID_TRANS);
-                bool retval = add_fpl_seg(legs, FPL_SEG_SID, sid_nm);
+                std::string trans_nm = fpl_refs[size_t(trans_seg)].name;
+                delete_ref(trans_seg);
+                bool retval = add_fpl_seg(legs, proc_seg, proc_nm);
                 if(!retval) // Case: runway doesn't belong to sid
                 {
-                    delete_ref(FPL_SEG_SID);
+                    delete_ref(proc_seg);
                 }
 
-                set_proc_trans(PROC_TYPE_SID, trans_nm, false);
+                set_proc_trans(proc_tp, trans_nm, is_star);
                 
                 return retval;
             }
@@ -456,10 +484,10 @@ namespace test
 
     bool FplnInt::set_proc_trans(ProcType tp, std::string trans, bool is_arr)
     {
-        if(trans == "NONE")
-        {
-            trans = "";
-        }
+        //if(trans == "NONE")
+        //{
+        //    trans = "";
+        //}
 
         size_t db_idx = get_proc_db_idx(tp, is_arr);
         size_t seg_tp = size_t(get_proc_tp(tp));

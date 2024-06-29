@@ -84,7 +84,7 @@ namespace test
 
         bool add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm);
 
-        bool set_sid(std::string sid_nm);
+        bool set_sid_star(std::string proc_nm, bool is_star=false);
 
         bool set_appch(std::string appch);
 
