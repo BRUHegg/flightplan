@@ -455,11 +455,12 @@ namespace test
         size_t cnt = 0;
         for(auto i: legs)
         {
-            if(cnt && cnt < legs.size()-1)
+            if(cnt && cnt < size_t(legs.size()-1))
             {
                 if(i.data.is_discon)
                 {
                     std::cout << "DISCONTINUITY\n";
+                    cnt++;
                     continue;
                 }
                 double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
