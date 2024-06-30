@@ -284,7 +284,7 @@ namespace test
         }
 
         std::vector<leg_t> vec = {start};
-        std::vector<leg_t> legs_add = legs;
+        std::vector<leg_t> legs_add = {};
         if(ins_seg->prev != &(seg_list.head) && 
             ins_seg->prev->data.seg_type != FPL_SEG_DEP_RWY)
         {
@@ -297,13 +297,24 @@ namespace test
             
             if(tmp_seg != &(seg_list.head))
                 merge_seg(tmp_seg);
+            
+            legs_add = legs;
         }
         else
         {
-            if(seg_tp != FPL_SEG_DEP_RWY)
+            if(seg_tp != FPL_SEG_DEP_RWY && seg_tp != FPL_SEG_SID)
+            {
                 add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
+                legs_add = legs;
+            }
             else
-                legs_add = vec;
+            {
+                legs_add.push_back(start);
+                for(auto i: legs)
+                {
+                    legs_add.push_back(i);
+                }
+            }
         }
         add_segment(legs_add, seg_tp, seg_name, ins_seg);
         fpl_refs[seg_tp].ptr = next_seg->prev;
@@ -507,10 +518,6 @@ namespace test
             leg_list_node_t *tgt_leg = tgt->data.end;
             leg_list_node_t *dct_leg = next_dir->data.end;
             std::string tgt_tp = tgt_leg->data.leg.leg_type;
-            if(tgt_tp == "FM" || tgt_tp == "VM")
-            {
-                return;
-            }
 
             if(legcmp(tgt_leg->data.leg, dct_leg->data.leg))
             {
@@ -520,7 +527,7 @@ namespace test
                     delete_segment(next_disc, false);
                 }
             }
-            else if(next_disc == nullptr)
+            else if(next_disc == nullptr && tgt_tp != "FM" && tgt_tp != "VM")
             {
                 add_discon(curr);
             }

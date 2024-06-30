@@ -14,12 +14,13 @@ int main()
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
-		"setdep KSEA",
-		"setarr KSEA",
-		"setdeprwy 34R",
-		"setproc 0 ISBRG1 DEP PROC",
-		"setproc 1 JAWBN6 ARR PROC",
-		"setproc 2 ILS34C ARR PROC",
+		"setdep KPDX",
+		"setarr KLAS",
+		"setdeprwy 28L",
+		"setproc 0 CASCD2 DEP PROC",
+		"setproc 1 JAYSN1 ARR PROC",
+		"setproc 2 ILS26L ARR PROC",
+		"setproc 2 BERBN ARR TRANS",
 		"plegs"
 		//"setdeprwy 28L",
 		//"fplinfo",
