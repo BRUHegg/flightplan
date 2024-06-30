@@ -482,6 +482,11 @@ namespace test
         size_t db_idx = get_proc_db_idx(PROC_TYPE_APPCH, true);
         if(proc_db[db_idx].find(appch) != proc_db[db_idx].end())
         {
+            std::string curr_star = fpl_refs[FPL_SEG_STAR].name;
+            std::string curr_star_trans = fpl_refs[FPL_SEG_STAR_TRANS].name;
+            delete_ref(FPL_SEG_STAR_TRANS);
+            delete_ref(FPL_SEG_STAR);
+
             std::string tmp = NONE_TRANS;
             libnav::arinc_leg_seq_t legs = arrival->get_appch(appch, tmp);
             std::string curr_tr = fpl_refs[FPL_SEG_APPCH].name;
@@ -491,12 +496,16 @@ namespace test
             if(added)
             {
                 arr_rwy = get_appr_rwy(appch);
+                set_sid_star(curr_star, true);
+                set_proc_trans(PROC_TYPE_STAR, curr_star_trans, true);
                 set_proc_trans(PROC_TYPE_APPCH, curr_tr, true);
                 return true;
             }
         }
 
         arr_rwy = "";
+        delete_ref(FPL_SEG_STAR_TRANS);
+        delete_ref(FPL_SEG_STAR);
         delete_ref(FPL_SEG_APPCH_TRANS);
         delete_ref(FPL_SEG_APPCH);
         return false;

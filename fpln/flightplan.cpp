@@ -506,6 +506,11 @@ namespace test
         {
             leg_list_node_t *tgt_leg = tgt->data.end;
             leg_list_node_t *dct_leg = next_dir->data.end;
+            std::string tgt_tp = tgt_leg->data.leg.leg_type;
+            if(tgt_tp == "FM" || tgt_tp == "VM")
+            {
+                return;
+            }
 
             if(legcmp(tgt_leg->data.leg, dct_leg->data.leg))
             {
