@@ -277,14 +277,13 @@ namespace test
         {
             ins_seg = next;
             next_seg = ins_seg;
-            //seg_tp = ins_seg->prev->data.seg_type;
         }
 
-        std::vector<leg_t> legs_add;
+        std::vector<leg_t> vec = {start};
+        std::vector<leg_t> legs_add = legs;
         if(ins_seg->prev != &(seg_list.head) && 
             ins_seg->prev->data.seg_type != FPL_SEG_DEP_RWY)
         {
-            std::vector<leg_t> vec = {start};
             seg_list_node_t *tmp_seg = ins_seg->prev;
 
             if(tmp_seg->data.is_discon)
@@ -294,16 +293,13 @@ namespace test
             
             if(tmp_seg != &(seg_list.head))
                 merge_seg(tmp_seg);
-
-            legs_add = legs;
         }
         else
         {
-            legs_add.push_back(start);
-            for(auto i: legs)
-            {
-                legs_add.push_back(i);
-            }
+            if(seg_tp != FPL_SEG_DEP_RWY)
+                add_segment(vec, seg_tp, DCT_LEG_NAME, ins_seg, true);
+            else
+                legs_add = vec;
         }
         add_segment(legs_add, seg_tp, seg_name, ins_seg);
         fpl_refs[seg_tp].ptr = next_seg->prev;
