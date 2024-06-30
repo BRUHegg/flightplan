@@ -276,7 +276,11 @@ namespace test
         else
         {
             ins_seg = next;
-            next_seg = ins_seg;
+            seg_list_node_t *tmp_ptr = fpl_refs[size_t(seg_tp)].ptr;
+            if(tmp_ptr->next == nullptr)
+                next_seg = ins_seg;
+            else
+                next_seg = tmp_ptr->next;
         }
 
         std::vector<leg_t> vec = {start};
@@ -416,6 +420,7 @@ namespace test
 
     void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
     {
+        assert(next != &(leg_list.tail) || !data.is_discon);
         leg_list_node_t *leg_add = leg_data_stack.get_new();
         if(leg_add != nullptr)
         {
