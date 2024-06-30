@@ -457,12 +457,12 @@ namespace test
                 size_t i_beg = l_add->size() > 0;
                 for(size_t i = i_beg; i < l_tmp->size(); i++)
                 {
-                    legs_add.push_back(l_tmp->at(i));
+                    l_add->push_back(l_tmp->at(i));
                 }
 
                 std::string trans_nm = fpl_refs[size_t(trans_seg)].name;
                 delete_ref(trans_seg);
-                bool retval = add_fpl_seg(legs_add, proc_seg, proc_nm);
+                bool retval = add_fpl_seg(*l_add, proc_seg, proc_nm);
                 if(!retval) // Case: runway doesn't belong to sid
                 {
                     delete_ref(proc_seg);
