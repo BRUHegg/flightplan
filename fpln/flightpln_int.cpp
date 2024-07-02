@@ -339,7 +339,9 @@ namespace test
         {
             if(next.ptr == nullptr)
             {
-
+                leg_t dir_leg = get_awy_tf_leg(end_id);
+                add_direct(dir_leg, &(leg_list.tail));
+                return true;
             }
             else
             {
