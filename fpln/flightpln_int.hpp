@@ -68,13 +68,14 @@ namespace test
 
         // End MUST be an airway id
 
-        void awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id);
+        bool awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id);
 
     private:
         std::string arr_rwy;
 
         std::vector<libnav::str_umap_t> proc_db;
         std::shared_ptr<libnav::AwyDB> awy_db;
+        std::shared_ptr<libnav::NavaidDB> navaid_db;
 
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
 
