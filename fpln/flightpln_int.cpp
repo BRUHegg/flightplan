@@ -295,33 +295,34 @@ namespace test
 
         if(next.id == seg_list.id && next.ptr != &(seg_list.head))
         {
-            seg_list_node_t *prev = next.ptr->prev;
-
-            if(prev->data.seg_type <= FPL_SEG_ENRT && next.ptr == &(seg_list.tail) && 
-                prev->data.end != nullptr)
+            if(next.ptr == nullptr)
             {
-                leg_list_node_t *end_leg = prev->data.end;
-                
-                libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
-                std::string end_leg_awy_id = end_fix.get_awy_id();
-
-                if(awy_db->is_in_awy(name, end_leg_awy_id))
+                seg_list_node_t *prev = seg_list.tail.prev;
+                if(prev->data.seg_type <= FPL_SEG_ENRT && prev->data.end != nullptr)
                 {
-                    seg_list_node_t *seg_add = seg_stack.get_new();
-                    if(seg_add != nullptr)
-                    {
-                        seg_add->data.name = name;
-                        seg_add->data.seg_type = FPL_SEG_ENRT;
-                        seg_add->data.is_direct = false;
-                        seg_add->data.is_discon = false;
-                        seg_add->data.end = nullptr;
-                        seg_list.insert_before(&(seg_list.tail), seg_add);
+                    leg_list_node_t *end_leg = prev->data.end;
+                
+                    libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
+                    std::string end_leg_awy_id = end_fix.get_awy_id();
 
-                        return true;
+                    if(awy_db->is_in_awy(name, end_leg_awy_id))
+                    {
+                        seg_list_node_t *seg_add = seg_stack.get_new();
+                        if(seg_add != nullptr)
+                        {
+                            seg_add->data.name = name;
+                            seg_add->data.seg_type = FPL_SEG_ENRT;
+                            seg_add->data.is_direct = false;
+                            seg_add->data.is_discon = false;
+                            seg_add->data.end = nullptr;
+                            seg_list.insert_before(&(seg_list.tail), seg_add);
+
+                            return true;
+                        }
                     }
                 }
             }
-            else if(prev->data.end != nullptr)
+            else
             {
                 // TODO: Add rename logic
             }
@@ -336,40 +337,50 @@ namespace test
 
         if(next.id == seg_list.id && next.ptr != &(seg_list.head))
         {
-            seg_list_node_t *prev = next.ptr->prev;
-
-            if(prev->data.end == nullptr && prev->data.name != "" && prev != &(seg_list.head))
+            if(next.ptr == nullptr)
             {
-                std::string prev_name = prev->data.name;
-                seg_list_node_t *prev_full = prev->prev;
 
-                if(prev_full->data.end != nullptr && awy_db->is_in_awy(prev_name, end_id))
-                {
-                    leg_list_node_t *prev_leg = prev_full->data.end;
-                    libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
-                    std::string start_id = start_fix.get_awy_id();
-
-                    if(prev == fpl_refs[size_t(FPL_SEG_ENRT)].ptr)
-                        fpl_refs[size_t(FPL_SEG_ENRT)].ptr = nullptr;
-                    seg_list.pop(prev, seg_stack.ptr_stack);
-                    bool ret = add_awy_seg(prev_name, start_id, end_id, next.ptr);
-                    
-                    return ret;
-                }
             }
-            else if(prev->data.end == nullptr && prev->data.name == "")
+            else
             {
-                // TODO: add insert direct logic
-            }
-            else if(prev->data.end != nullptr)
-            {
-                if(prev->data.is_direct)
-                {
+                seg_list_node_t *prev = next.ptr->prev;
 
-                }
-                else
+                if(prev != &(seg_list.head))
                 {
+                    if(prev->data.end == nullptr && prev->data.name != "")
+                    {
+                        std::string prev_name = prev->data.name;
+                        seg_list_node_t *prev_full = prev->prev;
 
+                        if(prev_full->data.end != nullptr && awy_db->is_in_awy(prev_name, end_id))
+                        {
+                            leg_list_node_t *prev_leg = prev_full->data.end;
+                            libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
+                            std::string start_id = start_fix.get_awy_id();
+
+                            if(prev == fpl_refs[size_t(FPL_SEG_ENRT)].ptr)
+                                fpl_refs[size_t(FPL_SEG_ENRT)].ptr = nullptr;
+                            seg_list.pop(prev, seg_stack.ptr_stack);
+                            bool ret = add_awy_seg(prev_name, start_id, end_id, next.ptr);
+                            
+                            return ret;
+                        }
+                    }
+                    else if(prev->data.end == nullptr && prev->data.name == "")
+                    {
+                        // TODO: add insert direct logic
+                    }
+                    else if(prev->data.end != nullptr)
+                    {
+                        if(prev->data.is_direct)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
                 }
             }
         }

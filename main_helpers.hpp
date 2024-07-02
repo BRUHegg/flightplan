@@ -517,19 +517,17 @@ namespace test
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
         auto segs = av->get_seg_list();
 
+        seg_list_node_t *s_ptr = nullptr;
         if(idx < segs.size())
         {
-            double id = av->seg_list_id;
-            bool retval = av->fpl->add_enrt_seg({segs[idx].ptr, id}, in[1]);
-
-            if(!retval)
-            {
-                std::cout << "Invalid entry\n";
-            }
+            s_ptr = segs[idx].ptr;
         }
-        else
+        double id = av->seg_list_id;
+        bool retval = av->fpl->add_enrt_seg({s_ptr, id}, in[1]);
+
+        if(!retval)
         {
-            std::cout << "Index out of range\n";
+            std::cout << "Invalid entry\n";
         }
     }
 
@@ -558,20 +556,18 @@ namespace test
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
         auto segs = av->get_seg_list();
 
+        seg_list_node_t *s_ptr = nullptr;
         if(idx < segs.size())
         {
-            libnav::waypoint_t tgt_wpt = {in[1], tgt};
-            double id = av->seg_list_id;
-            bool retval = av->fpl->awy_insert({segs[idx].ptr, id}, tgt_wpt.get_awy_id());
-
-            if(!retval)
-            {
-                std::cout << "Invalid entry\n";
-            }
+            s_ptr = segs[idx].ptr;
         }
-        else
+        libnav::waypoint_t tgt_wpt = {in[1], tgt};
+        double id = av->seg_list_id;
+        bool retval = av->fpl->awy_insert({s_ptr, id}, tgt_wpt.get_awy_id());
+
+        if(!retval)
         {
-            std::cout << "Index out of range\n";
+            std::cout << "Invalid entry\n";
         }
     }
 

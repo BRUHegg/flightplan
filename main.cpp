@@ -18,7 +18,7 @@ int main()
 		"setarr KJFK",
 		"setdeprwy 26",
 		"setproc 0 ARS3K DEP PROC",
-		"addvia 3 N623",
+		"addvia 4 N623",
 		"addto 4 IBGAX",
 		"plegs"
 		//"setdeprwy 28L",
