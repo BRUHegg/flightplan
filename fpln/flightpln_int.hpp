@@ -2,6 +2,7 @@
 
 #include "flightplan.hpp"
 #include <libnav/awy_db.hpp>
+#include <libnav/str_utils.hpp>
 #include <assert.h>
 
 

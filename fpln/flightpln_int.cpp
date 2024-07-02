@@ -492,10 +492,11 @@ namespace test
     leg_t FplnInt::get_awy_tf_leg(libnav::awy_point_t awy_pt)
     {
         std::string wpt_uid = awy_pt.get_uid();
+        std::vector<std::string> uid_split = strutils::str_split(wpt_uid, libnav::AUX_ID_SEP); // This should be somewhere in libnav
         std::vector<libnav::waypoint_entry_t> cand;
         size_t n_cand = navaid_db->get_wpt_by_awy_str(wpt_uid, &cand);
         assert(n_cand != 0);
-        libnav::waypoint_t wpt = {awy_pt.id, cand[0]};
+        libnav::waypoint_t wpt = {uid_split[0], cand[0]};
         leg_t out{};
         out.leg_type = "TF";
         out.main_fix = wpt;
