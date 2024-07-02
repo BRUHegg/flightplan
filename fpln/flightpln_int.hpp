@@ -95,6 +95,18 @@ namespace test
         bool add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm,
             seg_list_node_t *next=nullptr);
 
+        /*
+            Function: get_awy_tf_leg
+            Description:
+            Makes a TF leg using a waypoint id taken from airway data base.
+            @param wpt_id: id of the waypoint taken from airway data base. MUST be a valid id
+            @return: arinc424 TF leg
+        */
+
+        leg_t get_awy_tf_leg(std::string wpt_id);
+
+        bool add_awy_seg(std::string awy, std::string start, std::string end, seg_list_node_t *next);
+
         bool set_sid_star(std::string proc_nm, bool is_star=false);
 
         bool set_appch(std::string appch);

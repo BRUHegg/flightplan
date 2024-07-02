@@ -351,16 +351,23 @@ namespace test
                     libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
                     std::string start_id = start_fix.get_awy_id();
 
-                    std::vector<libnav::awy_point_t> awy_pts;
-                    int ret = awy_db->get_path(prev_name, start_id, end_id, &awy_pts);
-                    (void)ret;
-
-                    // TODO: convert awy_pts to TF legs and use add_fpl_seg to insert
+                    return add_awy_seg(prev_name, start_id, end_id, next.ptr);
                 }
             }
             else if(prev->data.end == nullptr && prev->data.name == "")
             {
                 // TODO: add insert direct logic
+            }
+            else if(prev->data.end != nullptr)
+            {
+                if(prev->data.is_direct)
+                {
+
+                }
+                else
+                {
+
+                }
             }
         }
 
@@ -472,6 +479,42 @@ namespace test
 
             add_legs(start, legs_ins, seg_tp, ref_nm, next);
             fpl_refs[seg_idx].name = ref_nm;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    leg_t FplnInt::get_awy_tf_leg(std::string wpt_id)
+    {
+        std::vector<libnav::waypoint_t> cand;
+        size_t n_cand = navaid_db->get_wpt_by_awy_str(wpt_id, &cand);
+        assert(n_cand != 0);
+        libnav::waypoint_t wpt = cand[0];
+        leg_t out{};
+        out.leg_type = "TF";
+        out.main_fix = wpt;
+
+        return out;
+    }
+
+    bool FplnInt::add_awy_seg(std::string awy, std::string start, std::string end, seg_list_node_t *next)
+    {
+        std::vector<libnav::awy_point_t> awy_pts;
+        size_t ret = size_t(awy_db->get_path(awy, start, end, &awy_pts));
+
+        if(ret)
+        {
+            leg_t start_leg = ret;
+            std::vector<leg_t> legs;
+
+            for(size_t i = 1; i < ret; i++)
+            {
+                legs.push_back(get_awy_tf_leg(awy_pts[i]));
+            }
+
+            add_legs(start_leg, legs, FPL_SEG_ENRT, awy, next);
 
             return true;
         }
