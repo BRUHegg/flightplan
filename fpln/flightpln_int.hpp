@@ -103,7 +103,7 @@ namespace test
             @return: arinc424 TF leg
         */
 
-        leg_t get_awy_tf_leg(std::string wpt_id);
+        leg_t get_awy_tf_leg(libnav::awy_point_t awy_pt);
 
         bool add_awy_seg(std::string awy, std::string start, std::string end, seg_list_node_t *next);
 

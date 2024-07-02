@@ -486,12 +486,13 @@ namespace test
         return false;
     }
 
-    leg_t FplnInt::get_awy_tf_leg(std::string wpt_id)
+    leg_t FplnInt::get_awy_tf_leg(libnav::awy_point_t awy_pt)
     {
-        std::vector<libnav::waypoint_t> cand;
-        size_t n_cand = navaid_db->get_wpt_by_awy_str(wpt_id, &cand);
+        std::string wpt_uid = awy_pt.get_uid();
+        std::vector<libnav::waypoint_entry_t> cand;
+        size_t n_cand = navaid_db->get_wpt_by_awy_str(wpt_uid, &cand);
         assert(n_cand != 0);
-        libnav::waypoint_t wpt = cand[0];
+        libnav::waypoint_t wpt = {awy_pt.id, cand[0]};
         leg_t out{};
         out.leg_type = "TF";
         out.main_fix = wpt;
@@ -506,7 +507,7 @@ namespace test
 
         if(ret)
         {
-            leg_t start_leg = ret;
+            leg_t start_leg = get_awy_tf_leg(awy_pts[0]);
             std::vector<leg_t> legs;
 
             for(size_t i = 1; i < ret; i++)

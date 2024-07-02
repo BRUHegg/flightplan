@@ -513,7 +513,13 @@ namespace test
 
         for(auto i: segs)
         {
-            std::cout << i.data.name << " " << i.data.seg_type << "\n";
+            leg_list_node_t *end_leg = i.data.end;
+            std::string end_nm = "";
+            if(end_leg != nullptr)
+            {
+                end_nm = end_leg->data.leg.main_fix.id;
+            }
+            std::cout << i.data.name << " " << end_nm << " " << i.data.seg_type << "\n";
         }
     }
 
