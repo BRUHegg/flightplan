@@ -31,9 +31,11 @@ namespace test
     // Public functions:
 
     FplnInt::FplnInt(std::shared_ptr<libnav::ArptDB> apt_db, 
-            std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path):
+            std::shared_ptr<libnav::NavaidDB> nav_db, std::shared_ptr<libnav::AwyDB> aw_db, 
+            std::string cifp_path):
         FlightPlan(apt_db, nav_db, cifp_path)
     {
+        awy_db = aw_db;
         proc_db.resize(N_PROC_DB_SZ);
     }
 
@@ -285,6 +287,43 @@ namespace test
 
         return set_proc_trans(tp, trans, is_arr);
     }
+
+    bool FplnInt::add_enrt_seg(timed_ptr_t<seg_list_node_t> next, std::string name)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(next.id == seg_list.id && next.ptr != &(seg_list.head))
+        {
+            seg_list_node_t *prev = next.ptr->prev;
+
+            if(prev->data.seg_type <= FPL_SEG_ENRT && next.ptr == &(seg_list.tail))
+            {
+                leg_list_node_t *end_leg = prev->data.end;
+                libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
+                std::string end_leg_awy_id = end_fix.get_awy_id();
+
+                if(awy_db->is_in_awy(name, end_leg_awy_id))
+                {
+                    seg_list_node_t *seg_add = seg_stack.get_new();
+                    if(seg_add != nullptr)
+                    {
+                        seg_add->data.name = name;
+                        seg_add->data.seg_type = FPL_SEG_ENRT;
+                        seg_add->data.is_direct = false;
+                        seg_add->data.is_discon = false;
+                        seg_add->data.end = nullptr;
+                        seg_list.insert_before(&(seg_list.tail), seg_add);
+
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    //void FplnInt::awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id);
 
     // Private functions:
 

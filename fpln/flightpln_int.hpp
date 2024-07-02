@@ -1,6 +1,7 @@
 #pragma once
 
 #include "flightplan.hpp"
+#include <libnav/awy_db.hpp>
 #include <assert.h>
 
 
@@ -25,7 +26,8 @@ namespace test
     {
     public:
         FplnInt(std::shared_ptr<libnav::ArptDB> apt_db, 
-            std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path);
+            std::shared_ptr<libnav::NavaidDB> nav_db, std::shared_ptr<libnav::AwyDB> aw_db, 
+            std::string cifp_path);
 
         // Airport functions:
 
@@ -62,10 +64,17 @@ namespace test
 
         bool set_arpt_proc_trans(ProcType tp, std::string trans, bool is_arr=false);
 
+        bool add_enrt_seg(timed_ptr_t<seg_list_node_t> next, std::string name);
+
+        // End MUST be an airway id
+
+        void awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id);
+
     private:
         std::string arr_rwy;
 
         std::vector<libnav::str_umap_t> proc_db;
+        std::shared_ptr<libnav::AwyDB> awy_db;
 
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
 

@@ -104,7 +104,7 @@ namespace test
                 std::cout << "Unable to load hold database\n";
             }
 
-            fpl = std::make_shared<FplnInt>(arpt_db_ptr, navaid_db_ptr, cifp_dir_path);
+            fpl = std::make_shared<FplnInt>(arpt_db_ptr, navaid_db_ptr, awy_db, cifp_dir_path);
         }
 
         std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
@@ -474,6 +474,33 @@ namespace test
         }
     }
 
+    inline void add_seg(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 2)
+        {
+            std::cout << "Command expects 2 arguments: {Next segment index}, {Airway name}\n";
+            return;
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        auto segs = av->get_seg_list();
+
+        if(idx < segs.size())
+        {
+            double id = av->seg_list_id;
+            bool retval = av->fpl->add_enrt_seg({segs[idx].ptr, id}, in[1]);
+
+            if(!retval)
+            {
+                std::cout << "Invalid entry\n";
+            }
+        }
+        else
+        {
+            std::cout << "Index out of range\n";
+        }
+    }
+
     inline void print_seg(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 0)
@@ -520,6 +547,7 @@ namespace test
         {"getproc", get_proc},
         {"getproctrans", get_proc_trans},
         {"setproc", set_proc},
+        {"addseg", add_seg},
         {"plegs", print_legs},
         {"pseg", print_seg},
         {"prefs", print_refs},
