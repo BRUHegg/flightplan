@@ -167,6 +167,38 @@ namespace test
     typedef void (*cmd)(Avionics*, std::vector<std::string>&);
 
 
+    inline libnav::waypoint_entry_t select_desired(std::string& name,
+            std::vector<libnav::waypoint_entry_t>& wpts)
+    {
+        if(wpts.size() == 0)
+        {
+            return {};
+        }
+        if(wpts.size() == 1)
+        {
+            return wpts[0];
+        }
+        std::cout << "Select desired " << name << "\n";
+        for(size_t i = 0; i < wpts.size(); i++)
+        {
+            std::cout << i+1 << ". " << strutils::lat_to_str(wpts[i].pos.lat_rad 
+                * geo::RAD_TO_DEG) 
+                << " " << strutils::lat_to_str(wpts[i].pos.lon_rad
+                * geo::RAD_TO_DEG) << "\n";
+        }
+        while(1)
+        {
+            std::string tmp;
+            std::getline(std::cin, tmp);
+
+            size_t num = size_t(strutils::stoi_with_strip(tmp));
+            if(num != 0 && num < wpts.size() + 1)
+            {
+                return wpts[num-1];
+            }
+        }
+    }
+
     inline void set_var(Avionics* av, std::vector<std::string>& in)
     {
         if(in.size() != 2)
@@ -474,7 +506,7 @@ namespace test
         }
     }
 
-    inline void add_seg(Avionics *av, std::vector<std::string>& in)
+    inline void add_via(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 2)
         {
@@ -489,6 +521,48 @@ namespace test
         {
             double id = av->seg_list_id;
             bool retval = av->fpl->add_enrt_seg({segs[idx].ptr, id}, in[1]);
+
+            if(!retval)
+            {
+                std::cout << "Invalid entry\n";
+            }
+        }
+        else
+        {
+            std::cout << "Index out of range\n";
+        }
+    }
+
+    inline void add_to(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 2)
+        {
+            std::cout << "Command expects 2 arguments: {Next segment index}, {End waypoint name}\n";
+            return;
+        }
+
+        std::vector<libnav::waypoint_entry_t> wpt_entr;
+        size_t n_found = av->navaid_db_ptr->get_wpt_data(in[1], &wpt_entr);
+
+        libnav::waypoint_entry_t tgt;
+
+        if(n_found == 0)
+        {
+            std::cout << "Invalid waypoint id\n";
+        }
+        else
+        {
+            tgt = select_desired(in[1], wpt_entr);
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        auto segs = av->get_seg_list();
+
+        if(idx < segs.size())
+        {
+            libnav::waypoint_t tgt_wpt = {in[1], tgt};
+            double id = av->seg_list_id;
+            bool retval = av->fpl->awy_insert({segs[idx].ptr, id}, tgt_wpt.get_awy_id());
 
             if(!retval)
             {
@@ -553,7 +627,8 @@ namespace test
         {"getproc", get_proc},
         {"getproctrans", get_proc_trans},
         {"setproc", set_proc},
-        {"addseg", add_seg},
+        {"addvia", add_via},
+        {"addto", add_to},
         {"plegs", print_legs},
         {"pseg", print_seg},
         {"prefs", print_refs},

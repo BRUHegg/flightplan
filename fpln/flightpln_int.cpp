@@ -341,17 +341,20 @@ namespace test
             if(prev->data.end == nullptr && prev->data.name != "" && prev != &(seg_list.head))
             {
                 std::string prev_name = prev->data.name;
-                seg_list_node_t *prev_full = next.ptr->prev;
+                seg_list_node_t *prev_full = prev->prev;
 
                 if(prev_full->data.end != nullptr && awy_db->is_in_awy(prev_name, end_id))
                 {
-                    seg_list.pop(prev, seg_stack.ptr_stack);
-
                     leg_list_node_t *prev_leg = prev_full->data.end;
                     libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
                     std::string start_id = start_fix.get_awy_id();
 
-                    return add_awy_seg(prev_name, start_id, end_id, next.ptr);
+                    if(prev == fpl_refs[size_t(FPL_SEG_ENRT)].ptr)
+                        fpl_refs[size_t(FPL_SEG_ENRT)].ptr = nullptr;
+                    seg_list.pop(prev, seg_stack.ptr_stack);
+                    bool ret = add_awy_seg(prev_name, start_id, end_id, next.ptr);
+                    
+                    return ret;
                 }
             }
             else if(prev->data.end == nullptr && prev->data.name == "")

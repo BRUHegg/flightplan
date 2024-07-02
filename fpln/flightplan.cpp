@@ -277,7 +277,7 @@ namespace test
         {
             ins_seg = next;
             seg_list_node_t *tmp_ptr = fpl_refs[size_t(seg_tp)].ptr;
-            if(tmp_ptr->next == nullptr)
+            if(tmp_ptr == nullptr || tmp_ptr->next == nullptr)
                 next_seg = ins_seg;
             else
                 next_seg = tmp_ptr->next;
