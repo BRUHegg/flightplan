@@ -330,7 +330,7 @@ namespace test
         return false;
     }
 
-    bool FplnInt::awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id)
+    bool FplnInt::awy_insert(timed_ptr_t<seg_list_node_t> next, std::string end_id)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
 
@@ -343,16 +343,17 @@ namespace test
                 std::string prev_name = prev->data.name;
                 seg_list_node_t *prev_full = next.ptr->prev;
 
-                if(prev_full->data.end != nullptr && awy_ab.is_in_awy(prev_name, end_id))
+                if(prev_full->data.end != nullptr && awy_db->is_in_awy(prev_name, end_id))
                 {
-                    seg_list.pop(prev, seg_stack);
+                    seg_list.pop(prev, seg_stack.ptr_stack);
 
-                    leg_list_node_t prev_leg = prev_full->data.end;
+                    leg_list_node_t *prev_leg = prev_full->data.end;
                     libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
                     std::string start_id = start_fix.get_awy_id();
 
                     std::vector<libnav::awy_point_t> awy_pts;
-                    int ret = awy_db->get_path(prev_name, start_id, end_id, awy_pts);
+                    int ret = awy_db->get_path(prev_name, start_id, end_id, &awy_pts);
+                    (void)ret;
 
                     // TODO: convert awy_pts to TF legs and use add_fpl_seg to insert
                 }

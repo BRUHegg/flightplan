@@ -68,7 +68,7 @@ namespace test
 
         // End MUST be an airway id
 
-        bool awy_insert(timed_ptr_t<seg_list_node_t> *next, std::string end_id);
+        bool awy_insert(timed_ptr_t<seg_list_node_t> next, std::string end_id);
 
     private:
         std::string arr_rwy;
