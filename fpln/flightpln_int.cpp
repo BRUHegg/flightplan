@@ -296,9 +296,11 @@ namespace test
         {
             seg_list_node_t *prev = next.ptr->prev;
 
-            if(prev->data.seg_type <= FPL_SEG_ENRT && next.ptr == &(seg_list.tail))
+            if(prev->data.seg_type <= FPL_SEG_ENRT && next.ptr == &(seg_list.tail) && 
+                prev->data.end != nullptr)
             {
                 leg_list_node_t *end_leg = prev->data.end;
+                
                 libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
                 std::string end_leg_awy_id = end_fix.get_awy_id();
 
