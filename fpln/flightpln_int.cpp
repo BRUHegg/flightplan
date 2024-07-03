@@ -298,10 +298,10 @@ namespace test
             if(next.ptr == nullptr)
             {
                 seg_list_node_t *prev = seg_list.tail.prev;
-                if(prev->data.seg_type <= FPL_SEG_ENRT && prev->data.end != nullptr)
-                {
-                    leg_list_node_t *end_leg = prev->data.end;
+                leg_list_node_t *end_leg = prev->data.end;
                 
+                if(prev->data.seg_type <= FPL_SEG_ENRT && end_leg != nullptr)
+                {
                     libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
                     std::string end_leg_awy_id = end_fix.get_awy_id();
 
@@ -322,9 +322,35 @@ namespace test
                     }
                 }
             }
-            else
+            else if(next.ptr != &(seg_list.head) && next.ptr->prev != &(seg_list.head))
             {
-                // TODO: Add rename logic
+                seg_list_node_t *prev = next.ptr->prev;
+                seg_list_node_t *base_seg = prev->prev;
+                leg_list_node_t *end_leg = base_seg->data.end;
+
+                if(end_leg != nullptr && !(prev->data.is_discon))
+                {
+                    libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
+                    std::string end_leg_awy_id = end_fix.get_awy_id();
+
+                    if(awy_db->is_in_awy(name, end_leg_awy_id))
+                    {
+                        fpl_segment_types prev_tp = prev->data.seg_type;
+                        delete_segment(prev);
+                        seg_list_node_t *seg_add = seg_stack.get_new();
+                        if(seg_add != nullptr)
+                        {
+                            seg_add->data.name = name;
+                            seg_add->data.seg_type = prev_tp;
+                            seg_add->data.is_direct = false;
+                            seg_add->data.is_discon = false;
+                            seg_add->data.end = nullptr;
+                            seg_list.insert_before(base_seg->next, seg_add);
+
+                            return true;
+                        }
+                    }
+                }
             }
         }
 
@@ -339,9 +365,13 @@ namespace test
         {
             if(next.ptr == nullptr)
             {
-                leg_t dir_leg = get_awy_tf_leg(end_id);
-                add_direct(dir_leg, &(leg_list.tail));
-                return true;
+                seg_list_node_t *prev = seg_list.tail.prev;
+                if(prev->data.end != nullptr)
+                {
+                    leg_t dir_leg = get_awy_tf_leg(end_id);
+                    add_direct(dir_leg, &(leg_list.tail));
+                    return true;
+                }
             }
             else
             {

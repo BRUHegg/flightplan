@@ -3,7 +3,7 @@
 
 int main()
 {
-    std::string earth_nav_path = "C:/Users/bieden/Documents/test_data/";
+    std::string earth_nav_path = "/home/betatest/Documents/programming/nav-test/test_data/";
 	std::string xp_ver = "xp12/";
     
     test::Avionics avncs(earth_nav_path+xp_ver+"apt.dat", earth_nav_path+xp_ver+"777_arpt.dat", 
@@ -20,6 +20,13 @@ int main()
 		"setproc 0 ARS3K DEP PROC",
 		"addvia 4 N623",
 		"addto 4 IBGAX",
+		"addvia  5 L199",
+		"addto 5 BARVA",
+		"addvia 6 L72",
+		"addto 6 RUSNE",
+		"addvia 7 M994",
+		"addto 7 GILUT",
+		"addvia 6 M869",
 		"plegs"
 		//"setdeprwy 28L",
 		//"fplinfo",

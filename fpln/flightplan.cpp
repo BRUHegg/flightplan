@@ -179,6 +179,12 @@ namespace test
 
     void FlightPlan::delete_segment(seg_list_node_t *seg, bool leave_seg)
     {
+        if(seg->data.end == nullptr)
+        {
+            seg_list.pop(seg, seg_stack.ptr_stack);
+            return;
+        }
+        
         leg_list_node_t *start = seg->prev->data.end;
         leg_list_node_t *end;
         seg_list_node_t *next_seg = seg->next;
