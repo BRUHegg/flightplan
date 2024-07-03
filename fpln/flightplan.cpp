@@ -177,7 +177,7 @@ namespace test
         }
     }
 
-    void FlightPlan::delete_segment(seg_list_node_t *seg, bool leave_seg)
+    void FlightPlan::delete_segment(seg_list_node_t *seg, bool leave_seg, bool add_disc)
     {
         if(seg->data.end == nullptr)
         {
@@ -188,6 +188,7 @@ namespace test
         leg_list_node_t *start = seg->prev->data.end;
         leg_list_node_t *end;
         seg_list_node_t *next_seg = seg->next;
+
         if(next_seg != &(seg_list.tail) && !next_seg->data.is_direct && 
             !next_seg->data.is_discon && leave_seg)
         {
@@ -198,8 +199,14 @@ namespace test
         else
         {
             end = seg->data.end->next;
+            add_disc = false;
         }
         delete_between(start, end);
+
+        if(add_disc)
+        {
+            add_discon(seg);
+        }
     }
 
     void FlightPlan::add_segment(std::vector<leg_t>& legs, 
