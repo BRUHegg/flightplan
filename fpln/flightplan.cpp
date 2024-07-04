@@ -399,6 +399,18 @@ namespace test
         leg_list_node_t *leg_end = &leg_list.tail;
 
         delete_between(leg_start, leg_end);
+
+        seg_list_node_t *start = seg_start;
+        while (start != &(seg_list.tail))
+        {
+            seg_list_node_t *next = start->next;
+            if(start->data.end == nullptr)
+            {
+                seg_list.pop(start, seg_stack.ptr_stack);
+            }
+            start = next;
+        }
+        
     }
 
     void FlightPlan::delete_between(leg_list_node_t* start, leg_list_node_t* end)
