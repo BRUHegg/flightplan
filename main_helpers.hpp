@@ -382,9 +382,10 @@ namespace test
 
     inline void get_proc(Avionics *av, std::vector<std::string>& in)
     {
-        if(in.size() != 2)
+        if(in.size() != 3)
         {
-            std::cout << "Command expects 2 arguments: {procedure type}, {DEP/ARR}\n";
+            std::cout << "Command expects 3 arguments: {procedure type}, {DEP/ARR}, \
+            {PROC/TRANS}\n";
             return;
         }
 
@@ -397,42 +398,22 @@ namespace test
         }
 
         bool is_arr = in[1] != "DEP";
+        bool is_trans = in[2] == "TRANS";
 
-        if(in[1] == "ARR" || in[1] == "DEP")
+        if((in[1] == "ARR" || in[1] == "DEP") && (in[2] == "TRANS" || in[2] == "PROC"))
         {
-            std::vector<std::string> procs = av->fpl->get_arpt_proc(ProcType(tmp), is_arr, 
-                av->flt_rwy, av->flt_proc);
-
-            for(auto i: procs)
+            std::vector<std::string> procs;
+            if(!is_trans)
             {
-                std::cout << i << "\n";
+                procs = av->fpl->get_arpt_proc(ProcType(tmp), is_arr, 
+                    av->flt_rwy, av->flt_proc);
             }
-        }
-    }
-
-    inline void get_proc_trans(Avionics *av, std::vector<std::string>& in)
-    {
-        if(in.size() != 2)
-        {
-            std::cout << "Command expects 3 arguments: {procedure type}, {DEP/ARR}\n";
-            return;
-        }
-
-        int tmp = strutils::stoi_with_strip(in[0]);
-
-        if(tmp < 0 || tmp > 2)
-        {
-            std::cout << "procedure type entry out of range\n";
-            return;
-        }
-
-        if(in[1] == "ARR" || in[1] == "DEP")
-        {
-            bool is_arr = in[1] != "DEP";
-
-            std::vector<std::string> trans = av->fpl->get_arpt_proc_trans(ProcType(tmp), false, is_arr);
-
-            for(auto i: trans)
+            else
+            {
+                procs = av->fpl->get_arpt_proc_trans(ProcType(tmp), false, is_arr);
+            }
+            
+            for(auto i: procs)
             {
                 std::cout << i << "\n";
             }
@@ -621,7 +602,6 @@ namespace test
         {"getdeprwys", get_dep_rwys},
         {"getarrrwys", get_arr_rwys},
         {"getproc", get_proc},
-        {"getproctrans", get_proc_trans},
         {"setproc", set_proc},
         {"addvia", add_via},
         {"addto", add_to},
