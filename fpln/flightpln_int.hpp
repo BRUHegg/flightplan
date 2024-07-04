@@ -106,7 +106,8 @@ namespace test
 
         leg_t get_awy_tf_leg(libnav::awy_point_t awy_pt);
 
-        bool add_awy_seg(std::string awy, std::string start, std::string end, seg_list_node_t *next);
+        void add_awy_seg(std::string awy, seg_list_node_t *next, 
+            std::vector<libnav::awy_point_t>& awy_pts);
 
         bool set_sid_star(std::string proc_nm, bool is_star=false);
 

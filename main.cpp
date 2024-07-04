@@ -27,6 +27,7 @@ int main()
 		"addvia 7 M994",
 		"addto 7 GILUT",
 		"addvia 6 M869",
+		"addto 6 BETAL",
 		"plegs"
 		//"setdeprwy 28L",
 		//"fplinfo",

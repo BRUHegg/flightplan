@@ -343,9 +343,16 @@ namespace test
 
                             if(awy_db->is_in_awy(name, prev_end_leg_awy_id))
                             {
-                                delete_segment(prev);
-                                return add_awy_seg(name, end_leg_awy_id, 
-                                    prev_end_leg_awy_id, next.ptr);
+                                std::vector<libnav::awy_point_t> awy_pts;
+                                size_t n_pts = size_t(awy_db->get_path(name, end_leg_awy_id, 
+                                    prev_end_leg_awy_id, &awy_pts));
+                                
+                                if(n_pts)
+                                {
+                                    delete_segment(prev);
+                                    add_awy_seg(name, next.ptr, awy_pts);
+                                    return true;
+                                }
                             }
                         }
                         fpl_segment_types prev_tp = prev->data.seg_type;
@@ -392,39 +399,35 @@ namespace test
 
                 if(prev != &(seg_list.head))
                 {
-                    if(prev->data.end == nullptr && prev->data.name != "")
+                    std::string prev_name = prev->data.name;
+                    seg_list_node_t *prev_full = prev->prev;
+
+                    bool in_awy = awy_db->is_in_awy(prev_name, end_id);
+                    if(prev_full->data.end != nullptr && in_awy)
                     {
-                        std::string prev_name = prev->data.name;
-                        seg_list_node_t *prev_full = prev->prev;
+                        leg_list_node_t *prev_leg = prev_full->data.end;
+                        libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
+                        std::string start_id = start_fix.get_awy_id();
 
-                        if(prev_full->data.end != nullptr && awy_db->is_in_awy(prev_name, end_id))
+                        std::vector<libnav::awy_point_t> awy_pts;
+                        size_t n_pts = size_t(awy_db->get_path(prev_name, start_id, end_id, 
+                            &awy_pts));
+                        
+                        if(n_pts)
                         {
-                            leg_list_node_t *prev_leg = prev_full->data.end;
-                            libnav::waypoint_t start_fix = prev_leg->data.leg.main_fix;
-                            std::string start_id = start_fix.get_awy_id();
+                            delete_segment(prev, true, true);
+                            add_awy_seg(prev_name, prev_full->next, awy_pts);
 
-                            if(prev == fpl_refs[size_t(FPL_SEG_ENRT)].ptr)
-                                fpl_refs[size_t(FPL_SEG_ENRT)].ptr = nullptr;
-                            seg_list.pop(prev, seg_stack.ptr_stack);
-                            bool ret = add_awy_seg(prev_name, start_id, end_id, next.ptr);
-                            
-                            return ret;
+                            return true;
                         }
                     }
-                    else if(prev->data.end == nullptr && prev->data.name == "")
+                    else if(prev_full->data.end != nullptr && !in_awy)
                     {
-                        // TODO: add insert direct logic
-                    }
-                    else if(prev->data.end != nullptr)
-                    {
-                        if(prev->data.is_direct)
-                        {
+                        delete_segment(prev, true, true);
+                        leg_t dir_leg = get_awy_tf_leg(end_id);
+                        add_direct(dir_leg, prev_full->data.end->next);
 
-                        }
-                        else
-                        {
-
-                        }
+                        return true;
                     }
                 }
             }
@@ -560,27 +563,18 @@ namespace test
         return out;
     }
 
-    bool FplnInt::add_awy_seg(std::string awy, std::string start, std::string end, seg_list_node_t *next)
+    void FplnInt::add_awy_seg(std::string awy, seg_list_node_t *next,
+        std::vector<libnav::awy_point_t>& awy_pts)
     {
-        std::vector<libnav::awy_point_t> awy_pts;
-        size_t ret = size_t(awy_db->get_path(awy, start, end, &awy_pts));
+        leg_t start_leg = get_awy_tf_leg(awy_pts[0]);
+        std::vector<leg_t> legs;
 
-        if(ret)
+        for(size_t i = 1; i < awy_pts.size(); i++)
         {
-            leg_t start_leg = get_awy_tf_leg(awy_pts[0]);
-            std::vector<leg_t> legs;
-
-            for(size_t i = 1; i < ret; i++)
-            {
-                legs.push_back(get_awy_tf_leg(awy_pts[i]));
-            }
-
-            add_legs(start_leg, legs, FPL_SEG_ENRT, awy, next);
-
-            return true;
+            legs.push_back(get_awy_tf_leg(awy_pts[i]));
         }
 
-        return false;
+        add_legs(start_leg, legs, FPL_SEG_ENRT, awy, next);
     }
 
     bool FplnInt::set_sid_star(std::string proc_nm, bool is_star)
