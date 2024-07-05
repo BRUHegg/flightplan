@@ -193,8 +193,22 @@ namespace test
 
         if(arr_rnw.find(rwy) != arr_rnw.end())
         {
-            arr_rwy = rwy;
+            if(arr_rwy != rwy)
+            {
+                arr_rwy = rwy;
+                libnav::arinc_rwy_data_t rwy_data = arr_rnw[rwy];
+                libnav::waypoint_t rwy_wpt = {arr_rwy, {libnav::NavaidType::RWY, 0, rwy_data.pos, 
+                    arrival->icao_code, "", nullptr}};
+                leg_t rwy_leg{};
+                rwy_leg.leg_type = "TF";
+                rwy_leg.main_fix = rwy_wpt;
 
+                libnav::arinc_leg_seq_t legs = {};
+
+                add_legs(rwy_leg, legs, FPL_SEG_APPCH, arr_rwy);
+                fpl_refs[size_t(FPL_SEG_APPCH)].name = arr_rwy;
+            }
+            
             return true;
         }
 
