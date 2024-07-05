@@ -451,6 +451,44 @@ namespace test
         return false;
     }
 
+    bool FplnInt::delete_via(timed_ptr_t<seg_list_node_t> curr)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(curr.id == seg_list.id && curr.ptr != &(seg_list.head) && curr.ptr != nullptr &&
+            curr.ptr->prev != &(seg_list.head))
+        {
+            if(!curr.ptr->data.is_discon && !curr.ptr->data.is_direct)
+            {
+                delete_segment(curr.ptr, true, false, true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool FplnInt::delete_seg_end(timed_ptr_t<seg_list_node_t> curr)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(curr.id == seg_list.id && curr.ptr != &(seg_list.head) && curr.ptr != nullptr &&
+            !curr.ptr->data.is_discon)
+        {
+            seg_list_node_t *next = curr.ptr->next;
+            if(curr.ptr != &(seg_list.tail) && !next->data.is_direct && 
+                !next->data.is_discon && curr.ptr->data.end != nullptr)
+            {
+                delete_segment(curr.ptr->next, true, false, true);
+            }
+
+            delete_segment(curr.ptr, false, true);
+
+            return true;
+        }
+
+        return false;
+    }
+
     // Private functions:
 
     size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)

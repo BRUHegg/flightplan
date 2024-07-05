@@ -201,7 +201,8 @@ namespace test
 
         void delete_ref(fpl_segment_types ref);
         
-        void delete_segment(seg_list_node_t *seg, bool leave_seg=true, bool add_disc=false);
+        void delete_segment(seg_list_node_t *seg, bool leave_seg=true, bool add_disc=false,
+            bool ignore_tail=false);
 
         void add_segment(std::vector<leg_t>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next, bool is_direct=false);

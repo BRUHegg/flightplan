@@ -512,6 +512,31 @@ namespace test
         }
     }
 
+    inline void delete_via(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {Next segment index}\n";
+            return;
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        auto segs = av->get_seg_list();
+
+        seg_list_node_t *s_ptr = nullptr;
+        if(idx < segs.size())
+        {
+            s_ptr = segs[idx].ptr;
+        }
+        double id = av->seg_list_id;
+        bool retval = av->fpl->delete_via({s_ptr, id});
+
+        if(!retval)
+        {
+            std::cout << "INVALID DELETE\n";
+        }
+    }
+
     inline void add_to(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 2)
@@ -549,6 +574,31 @@ namespace test
         if(!retval)
         {
             std::cout << "Invalid entry\n";
+        }
+    }
+
+    inline void delete_to(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {Next segment index}\n";
+            return;
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        auto segs = av->get_seg_list();
+
+        seg_list_node_t *s_ptr = nullptr;
+        if(idx < segs.size())
+        {
+            s_ptr = segs[idx].ptr;
+        }
+        double id = av->seg_list_id;
+        bool retval = av->fpl->delete_seg_end({s_ptr, id});
+
+        if(!retval)
+        {
+            std::cout << "INVALID DELETE\n";
         }
     }
 
@@ -604,7 +654,9 @@ namespace test
         {"getproc", get_proc},
         {"setproc", set_proc},
         {"addvia", add_via},
+        {"deletevia", delete_via},
         {"addto", add_to},
+        {"deleteto", delete_to},
         {"plegs", print_legs},
         {"pseg", print_seg},
         {"prefs", print_refs},

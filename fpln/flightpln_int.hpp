@@ -65,11 +65,17 @@ namespace test
 
         bool set_arpt_proc_trans(ProcType tp, std::string trans, bool is_arr=false);
 
+        // Enroute:
+
         bool add_enrt_seg(timed_ptr_t<seg_list_node_t> next, std::string name);
 
         // End MUST be an airway id
 
         bool awy_insert(timed_ptr_t<seg_list_node_t> next, std::string end_id);
+
+        bool delete_via(timed_ptr_t<seg_list_node_t> next);
+
+        bool delete_seg_end(timed_ptr_t<seg_list_node_t> next);
 
     private:
         std::string arr_rwy;
