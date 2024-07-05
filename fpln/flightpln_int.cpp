@@ -329,14 +329,14 @@ namespace test
                 leg_list_node_t *prev_end_leg = prev->data.end;
                 leg_list_node_t *end_leg = base_seg->data.end;
 
-                if(end_leg != nullptr && !(prev->data.is_discon))
+                if(end_leg != nullptr)
                 {
                     libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
                     std::string end_leg_awy_id = end_fix.get_awy_id();
 
                     if(awy_db->is_in_awy(name, end_leg_awy_id))
                     {
-                        if(prev_end_leg != nullptr)
+                        if(prev_end_leg != nullptr && !(prev->data.is_discon))
                         {
                             libnav::waypoint_t prev_end_fix = prev_end_leg->data.leg.main_fix;
                             std::string prev_end_leg_awy_id = prev_end_fix.get_awy_id();
@@ -356,7 +356,8 @@ namespace test
                             }
                         }
                         fpl_segment_types prev_tp = prev->data.seg_type;
-                        delete_segment(prev, true, true);
+                        if(!(prev->data.is_discon))
+                            delete_segment(prev, true, true);
                         seg_list_node_t *seg_add = seg_stack.get_new();
                         if(seg_add != nullptr)
                         {
