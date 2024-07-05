@@ -453,6 +453,21 @@ namespace test
             curr = next;
             next = curr->next;
         }
+
+        seg_list_node_t *start_seg = start->data.seg;
+        seg_list_node_t *next_seg = start_seg->next;
+        seg_list_node_t *end_seg = end->data.seg;
+
+        while (start_seg != end_seg)
+        {
+            start_seg = next_seg;
+            if(start_seg != end_seg)
+            {
+                next_seg = start_seg->next;
+                seg_list.pop(start_seg, seg_stack.ptr_stack);
+            }
+        }
+        
     }
 
     void FlightPlan::add_singl_leg(leg_list_node_t *next, leg_list_data_t data)
