@@ -489,6 +489,17 @@ namespace test
         return false;
     }
 
+    void FplnInt::dir_from_to(timed_ptr_t<leg_list_node_t> from, 
+            timed_ptr_t<leg_list_node_t> to)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(from.id == leg_list.id && from.id == to.id)
+        {
+            delete_range(from.ptr, to.ptr);
+        }
+    }
+
     // Private functions:
 
     size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)

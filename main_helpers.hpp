@@ -33,6 +33,9 @@ namespace test
 
         std::shared_ptr<FplnInt> fpl;
 
+        std::pair<size_t, double> leg_sel_cdu_l;
+        std::pair<size_t, double> leg_sel_cdu_r;
+
         std::unordered_map<std::string, std::string> env_vars;
 
         std::string cifp_dir_path;
@@ -105,6 +108,9 @@ namespace test
             }
 
             fpl = std::make_shared<FplnInt>(arpt_db_ptr, navaid_db_ptr, awy_db, cifp_dir_path);
+
+            leg_sel_cdu_l = {0, 0};
+            leg_sel_cdu_r = {0, 0};
         }
 
         std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
@@ -602,6 +608,57 @@ namespace test
         }
     }
 
+    inline void legs_set(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 2)
+        {
+            std::cout << "Command expects 2 arguments: {index}, {L/R}\n";
+            return;
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        auto legs = av->get_legs_list();
+
+        if(idx >= legs.size())
+        {
+            std::cout << "Index out of range\n";
+            return;
+        }
+
+        std::pair<size_t, double> *ptr;
+
+        if(in[1] == "L")
+        {
+            ptr = &av->leg_sel_cdu_l;
+        }
+        else if(in[1] == "R")
+        {
+            ptr = &av->leg_sel_cdu_r;
+        }
+        else
+        {
+            std::cout << "Invalid second parameter\n";
+            return;
+        }
+
+        if(av->leg_list_id != ptr->second)
+        {
+            ptr->first = idx;
+            ptr->second = av->leg_list_id;
+        }
+        else
+        {
+            size_t from = idx;
+            size_t to = ptr->first;
+            if(from > to)
+                std::swap(from, to);
+            
+            av->fpl->dir_from_to({legs[from].ptr, ptr->second}, 
+                {legs[to].ptr, ptr->second});
+            ptr->second = -1;
+        }
+    }
+
     inline void print_seg(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 0)
@@ -657,6 +714,7 @@ namespace test
         {"deletevia", delete_via},
         {"addto", add_to},
         {"deleteto", delete_to},
+        {"legset", legs_set},
         {"plegs", print_legs},
         {"pseg", print_seg},
         {"prefs", print_refs},
