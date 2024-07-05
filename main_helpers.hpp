@@ -616,10 +616,10 @@ namespace test
             return;
         }
 
-        size_t idx = size_t(strutils::stoi_with_strip(in[0]));
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]))+1;
         auto legs = av->get_legs_list();
 
-        if(idx >= legs.size())
+        if(idx >= legs.size()-1)
         {
             std::cout << "Index out of range\n";
             return;
