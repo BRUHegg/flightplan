@@ -14,32 +14,18 @@ int main()
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
-		"setdep ESSA",
-		"setarr KJFK",
+		"setdep EGHH",
+		"setarr LFML",
 		"setdeprwy 26",
-		"setproc 0 ARS3K DEP PROC",
-		"addvia 4 N623",
-		"addto 4 IBGAX",
-		"addvia  5 L199",
-		"addto 5 BARVA",
-		"addvia 6 L72",
-		"addto 6 RUSNE",
-		"addvia 7 M994",
-		"addto 7 GILUT",
-		"addvia 6 M869",
-		"addto 6 BETAL",
-		"legset 6 L L MAGGY",
-		//"legset 7 L L",
-		//"legset 19 L L",
-		//"plegs",
-		//"prefs",
-		//"legset 12 L",
-		//"legset 16 L",
-		"prefs",
-		"plegs"
-		//"setdeprwy 28L",
-		//"fplinfo",
-		//"getproc 0 DEP"
+		"setproc 0 EAST DEP PROC",
+		"setproc 0 GWC DEP TRANS",
+		"legset 5 L L BENBO",
+		"addvia 6 UL612",
+		"addto 6 RESMI",
+		"legset 11 L L UTUVA",
+		"legset 12 L L LERGA",
+		"setproc 2 RNV31LZ ARR PROC",
+		"setproc 1 LERG1D ARR PROC"
 	};
 	//pre_exec = {};
 

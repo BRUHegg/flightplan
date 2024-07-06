@@ -614,8 +614,8 @@ namespace test
         return out;
     }
 
-    bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string ref_nm,
-        seg_list_node_t *next)
+    bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string seg_nm,
+        seg_list_node_t *next, bool set_ref)
     {
         if(legs.size())
         {
@@ -628,8 +628,9 @@ namespace test
                 legs_ins.push_back(legs[i]);
             }
 
-            add_legs(start, legs_ins, seg_tp, ref_nm, next);
-            fpl_refs[seg_idx].name = ref_nm;
+            add_legs(start, legs_ins, seg_tp, seg_nm, next);
+            if(set_ref)
+                fpl_refs[seg_idx].name = seg_nm;
 
             return true;
         }
@@ -779,7 +780,7 @@ namespace test
                 if(appr_seg != nullptr)
                 {
                     seg_list_node_t *seg_ins = fpl_refs[size_t(FPL_SEG_APPCH)].ptr->next;
-                    return add_fpl_seg(ga_legs, FPL_SEG_APPCH, MISSED_APPR_SEG_NM, seg_ins);
+                    return add_fpl_seg(ga_legs, FPL_SEG_APPCH, MISSED_APPR_SEG_NM, seg_ins, false);
                 }
                 else
                 {
