@@ -18,6 +18,7 @@ namespace test
     constexpr size_t N_PROC_DB_SZ = 5;
     constexpr size_t N_ARR_DB_OFFSET = 2;
     const std::string NONE_TRANS = "NONE";
+    const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
 
 
     std::string get_appr_rwy(std::string& appr);
@@ -125,6 +126,9 @@ namespace test
             std::vector<libnav::awy_point_t>& awy_pts);
 
         bool set_sid_star(std::string proc_nm, bool is_star=false);
+
+        bool set_appch_legs(std::string appch, std::string& arr_rwy, 
+            libnav::arinc_leg_seq_t legs);
 
         bool set_appch(std::string appch);
 

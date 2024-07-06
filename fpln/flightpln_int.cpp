@@ -745,6 +745,53 @@ namespace test
         return false;
     }
 
+    bool FplnInt::set_appch_legs(std::string appch, std::string& arr_rwy, 
+        libnav::arinc_leg_seq_t legs)
+    {
+        size_t rwy_idx = 0;
+        bool rwy_found = false;
+        libnav::arinc_leg_seq_t appch_legs = {};
+        libnav::arinc_leg_seq_t ga_legs = {}; // Missed approach legs
+        for(size_t i = 0; i < legs.size(); i++)
+        {
+            appch_legs.push_back(legs[i]);
+
+            if(legs[i].main_fix.id == arr_rwy)
+            {
+                rwy_idx = i;
+                rwy_found = true;
+                break;
+            }
+        }
+
+        bool added = add_fpl_seg(appch_legs, FPL_SEG_APPCH, appch);
+
+        if(added)
+        {
+            if(rwy_found)
+            {
+                for(size_t i = rwy_idx; i < legs.size(); i++)
+                {
+                    ga_legs.push_back(legs[i]);
+                }
+
+                seg_list_node_t *appr_seg = fpl_refs[size_t(FPL_SEG_APPCH)].ptr;
+                if(appr_seg != nullptr)
+                {
+                    seg_list_node_t *seg_ins = fpl_refs[size_t(FPL_SEG_APPCH)].ptr->next;
+                    return add_fpl_seg(ga_legs, FPL_SEG_APPCH, MISSED_APPR_SEG_NM, seg_ins);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     bool FplnInt::set_appch(std::string appch)
     {
         size_t db_idx = get_proc_db_idx(PROC_TYPE_APPCH, true);
@@ -760,10 +807,11 @@ namespace test
             std::string curr_tr = fpl_refs[FPL_SEG_APPCH].name;
             delete_ref(FPL_SEG_APPCH_TRANS);
 
-            bool added = add_fpl_seg(legs, FPL_SEG_APPCH, appch);
+            std::string tmp_rwy = get_appr_rwy(appch);
+            bool added = set_appch_legs(appch, tmp_rwy, legs);
             if(added)
             {
-                arr_rwy = get_appr_rwy(appch);
+                arr_rwy = tmp_rwy;
                 set_sid_star(curr_star, true);
                 set_proc_trans(PROC_TYPE_STAR, curr_star_trans, true);
                 set_proc_trans(PROC_TYPE_APPCH, curr_tr, true);
