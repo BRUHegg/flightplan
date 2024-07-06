@@ -28,6 +28,11 @@ int main()
 		"addto 7 GILUT",
 		"addvia 6 M869",
 		"addto 6 BETAL",
+		"plegs",
+		"prefs",
+		"legset 12 L",
+		"legset 16 L",
+		"prefs",
 		"plegs"
 		//"setdeprwy 28L",
 		//"fplinfo",
