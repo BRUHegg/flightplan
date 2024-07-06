@@ -476,6 +476,7 @@ namespace test
         {
             if(cnt && cnt < size_t(legs.size()-1))
             {
+                std::cout << cnt-1 << ". ";
                 if(i.data.is_discon)
                 {
                     std::cout << "DISCONTINUITY\n";
@@ -666,8 +667,12 @@ namespace test
             }
             else if(idx < legs.size()-1)
             {
-                ptr->first = idx;
-                ptr->second = av->leg_list_id;
+                leg_list_node_t *leg_ptr = legs[idx].ptr;
+                if(!leg_ptr->data.is_discon)
+                {
+                    ptr->first = idx;
+                    ptr->second = av->leg_list_id;
+                }
             }
         }
         else if(idx < legs.size()-1)
@@ -676,7 +681,10 @@ namespace test
             size_t to = ptr->first;
             if(from > to)
                 std::swap(from, to);
-            
+            if(from)
+            {
+                from--;
+            }
             av->fpl->dir_from_to({legs[from].ptr, ptr->second}, 
                 {legs[to].ptr, ptr->second});
             ptr->second = -1;
