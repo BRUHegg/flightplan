@@ -691,6 +691,31 @@ namespace test
         }
     }
 
+    inline void delete_leg(Avionics *av, std::vector<std::string>& in)
+    {
+        if(in.size() != 1)
+        {
+            std::cout << "Command expects 1 argument: {leg number}\n";
+            return;
+        }
+
+        size_t idx = size_t(strutils::stoi_with_strip(in[0]))+1;
+        auto legs = av->get_legs_list();
+
+        if(idx >= legs.size()-1)
+        {
+            std::cout << "Index out of range\n";
+            return;
+        }
+
+        bool ret = av->fpl->delete_leg({legs[idx].ptr, av->leg_list_id});
+
+        if(!ret)
+        {
+            std::cout << "INVALID DELETE\n";
+        }
+    }
+
     inline void print_seg(Avionics *av, std::vector<std::string>& in)
     {
         if(in.size() != 0)
@@ -747,6 +772,7 @@ namespace test
         {"addto", add_to},
         {"deleteto", delete_to},
         {"legset", legs_set},
+        {"deleteleg", delete_leg},
         {"plegs", print_legs},
         {"pseg", print_seg},
         {"prefs", print_refs},
