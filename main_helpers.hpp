@@ -610,16 +610,19 @@ namespace test
 
     inline void legs_set(Avionics *av, std::vector<std::string>& in)
     {
-        if(in.size() != 2)
+        if(in.size() != 3 && in.size() != 4)
         {
-            std::cout << "Command expects 2 arguments: {index}, {L/R}\n";
+            std::cout << "Command expects 3 arguments: {index}, {L/R CDU}, {L/R Field}, (optional){Scratch pad content. If not empty}\n";
             return;
         }
+        
+        if(in[2] == "R")
+            return;
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]))+1;
         auto legs = av->get_legs_list();
 
-        if(idx >= legs.size()-1)
+        if(idx >= legs.size())
         {
             std::cout << "Index out of range\n";
             return;
@@ -643,10 +646,31 @@ namespace test
 
         if(av->leg_list_id != ptr->second)
         {
-            ptr->first = idx;
-            ptr->second = av->leg_list_id;
+            if(in.size() == 4)
+            {
+                std::vector<libnav::waypoint_entry_t> wpt_entr;
+                size_t n_found = av->navaid_db_ptr->get_wpt_data(in[3], &wpt_entr);
+
+                libnav::waypoint_entry_t tgt;
+
+                if(n_found == 0)
+                {
+                    std::cout << "Invalid waypoint id\n";
+                }
+                else
+                {
+                    tgt = select_desired(in[3], wpt_entr);
+                }
+
+                av->fpl->add_direct({in[3], tgt}, {legs[idx].ptr, av->leg_list_id});
+            }
+            else if(idx < legs.size()-1)
+            {
+                ptr->first = idx;
+                ptr->second = av->leg_list_id;
+            }
         }
-        else
+        else if(idx < legs.size()-1)
         {
             size_t from = idx;
             size_t to = ptr->first;

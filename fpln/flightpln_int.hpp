@@ -82,6 +82,10 @@ namespace test
         void dir_from_to(timed_ptr_t<leg_list_node_t> from, 
             timed_ptr_t<leg_list_node_t> to);
 
+        void add_direct(libnav::waypoint_t wpt, timed_ptr_t<leg_list_node_t> next);
+
+        bool delete_leg(timed_ptr_t<leg_list_node_t> next);
+
     private:
         std::string arr_rwy;
 

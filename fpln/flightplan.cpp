@@ -335,7 +335,7 @@ namespace test
         merge_seg(ins_seg->prev);
     }
 
-    void FlightPlan::add_direct(leg_t leg, leg_list_node_t *next_leg)
+    void FlightPlan::add_direct_leg(leg_t leg, leg_list_node_t *next_leg)
     {
         if(fpl_refs[size_t(FPL_SEG_DEP_RWY)].ptr == nullptr)
             return;
@@ -363,8 +363,11 @@ namespace test
         }
     }
 
-    void FlightPlan::delete_leg(leg_list_node_t *leg)  // leg before/after discontinuity
+    bool FlightPlan::delete_singl_leg(leg_list_node_t *leg)  // leg before/after discontinuity
     {
+        if(leg->data.is_discon)
+            return false;
+
         leg_list_node_t *prev_leg = leg->prev;
         leg_list_node_t *next_leg = leg->next;
 
@@ -374,6 +377,8 @@ namespace test
         {
             add_discon(next_leg->data.seg);
         }
+
+        return true;
     }
 
     FlightPlan::~FlightPlan()

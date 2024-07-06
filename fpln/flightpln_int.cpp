@@ -404,7 +404,7 @@ namespace test
                 if(prev->data.end != nullptr)
                 {
                     leg_t dir_leg = get_awy_tf_leg(end_id);
-                    add_direct(dir_leg, &(leg_list.tail));
+                    add_direct_leg(dir_leg, &(leg_list.tail));
                     return true;
                 }
             }
@@ -440,7 +440,7 @@ namespace test
                     {
                         delete_segment(prev, true, true);
                         leg_t dir_leg = get_awy_tf_leg(end_id);
-                        add_direct(dir_leg, prev_full->data.end->next);
+                        add_direct_leg(dir_leg, prev_full->data.end->next);
 
                         return true;
                     }
@@ -498,6 +498,31 @@ namespace test
         {
             delete_range(from.ptr, to.ptr);
         }
+    }
+
+    void FplnInt::add_direct(libnav::waypoint_t wpt, timed_ptr_t<leg_list_node_t> next)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(next.id == leg_list.id)
+        {
+            leg_t dir_leg{};
+            dir_leg.leg_type = "TF";
+            dir_leg.main_fix = wpt;
+
+            add_direct_leg(dir_leg, next.ptr);
+        }
+    }
+
+    bool FplnInt::delete_leg(timed_ptr_t<leg_list_node_t> next)
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+
+        if(next.id == leg_list.id)
+        {
+            return delete_singl_leg(next.ptr);
+        }
+        return false;
     }
 
     // Private functions:

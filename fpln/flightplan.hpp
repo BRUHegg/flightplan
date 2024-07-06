@@ -212,9 +212,9 @@ namespace test
         void add_legs(leg_t start, std::vector<leg_t>& legs, fpl_segment_types seg_tp,
             std::string seg_name, seg_list_node_t *next=nullptr);
 
-        void add_direct(leg_t leg, leg_list_node_t *next);
+        void add_direct_leg(leg_t leg, leg_list_node_t *next);
 
-        void delete_leg(leg_list_node_t *leg);
+        bool delete_singl_leg(leg_list_node_t *leg);
 
     private:
         std::map<fpl_segment_types, std::string> seg_to_str = {
