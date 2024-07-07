@@ -205,6 +205,12 @@ namespace test
 
                 libnav::arinc_leg_seq_t legs = {};
 
+                delete_ref(FPL_SEG_APPCH_TRANS);
+
+                set_sid_star(fpl_refs[size_t(FPL_SEG_STAR)].name, true, false);
+                //set_proc_trans(PROC_TYPE_STAR, 
+                //    fpl_refs[size_t(FPL_SEG_STAR_TRANS)].name, true);
+
                 add_legs(rwy_leg, legs, FPL_SEG_APPCH, arr_rwy);
                 fpl_refs[size_t(FPL_SEG_APPCH)].name = arr_rwy;
             }
@@ -667,7 +673,7 @@ namespace test
         add_legs(start_leg, legs, FPL_SEG_ENRT, awy, next);
     }
 
-    bool FplnInt::set_sid_star(std::string proc_nm, bool is_star)
+    bool FplnInt::set_sid_star(std::string proc_nm, bool is_star, bool reset_rwy)
     {
         size_t db_idx;
         ProcType proc_tp;
@@ -737,17 +743,24 @@ namespace test
                     delete_ref(proc_seg);
                     if(is_star)
                     {
-                        delete_ref(FPL_SEG_APPCH);
-                        delete_ref(FPL_SEG_APPCH_TRANS);
+                        if(reset_rwy)
+                        {
+                            arr_rwy = "";
+                            delete_ref(FPL_SEG_APPCH);
+                            delete_ref(FPL_SEG_APPCH_TRANS);
+                        }
+                        
                         delete_ref(FPL_SEG_STAR_TRANS);
                     }
                     else
                     {
-                        delete_ref(FPL_SEG_DEP_RWY);
+                        if(reset_rwy)
+                            delete_ref(FPL_SEG_DEP_RWY);
                         delete_ref(FPL_SEG_SID_TRANS);
                     }
 
-                    fpl_refs[size_t(proc_seg)].name = proc_nm;
+                    if(reset_rwy)
+                        fpl_refs[size_t(proc_seg)].name = proc_nm;
                 }
                 else
                 {
@@ -828,7 +841,7 @@ namespace test
             if(added)
             {
                 arr_rwy = tmp_rwy;
-                set_sid_star(curr_star, true);
+                set_sid_star(curr_star, true, false);
                 set_proc_trans(PROC_TYPE_STAR, curr_star_trans, true);
                 set_proc_trans(PROC_TYPE_APPCH, curr_tr, true);
                 return true;

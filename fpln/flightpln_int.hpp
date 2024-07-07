@@ -125,7 +125,7 @@ namespace test
         void add_awy_seg(std::string awy, seg_list_node_t *next, 
             std::vector<libnav::awy_point_t>& awy_pts);
 
-        bool set_sid_star(std::string proc_nm, bool is_star=false);
+        bool set_sid_star(std::string proc_nm, bool is_star=false, bool reset_rwy=true);
 
         bool set_appch_legs(std::string appch, std::string& arr_rwy, 
             libnav::arinc_leg_seq_t legs);
