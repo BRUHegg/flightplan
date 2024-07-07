@@ -170,10 +170,12 @@ namespace test
         seg_list_node_t *seg_ptr = fpl_refs[ref_idx].ptr;
         if(seg_ptr != nullptr)
         {
-            leg_list_node_t *start = seg_ptr->prev->data.end;
-            leg_list_node_t *end = seg_ptr->data.end->next;
-
-            delete_range(start, end);
+            while(seg_ptr->data.seg_type == ref && seg_ptr != &(seg_list.head))
+            {
+                seg_list_node_t *prev = seg_ptr->prev;
+                delete_segment(seg_ptr);
+                seg_ptr = prev;
+            }
         }
     }
 

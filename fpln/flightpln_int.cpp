@@ -735,9 +735,24 @@ namespace test
                 if(!retval) // Case: runway doesn't belong to sid
                 {
                     delete_ref(proc_seg);
-                }
+                    if(is_star)
+                    {
+                        delete_ref(FPL_SEG_APPCH);
+                        delete_ref(FPL_SEG_APPCH_TRANS);
+                        delete_ref(FPL_SEG_STAR_TRANS);
+                    }
+                    else
+                    {
+                        delete_ref(FPL_SEG_DEP_RWY);
+                        delete_ref(FPL_SEG_SID_TRANS);
+                    }
 
-                set_proc_trans(proc_tp, trans_nm, is_star);
+                    fpl_refs[size_t(proc_seg)].name = proc_nm;
+                }
+                else
+                {
+                    set_proc_trans(proc_tp, trans_nm, is_star);
+                }
                 
                 return retval;
             }
