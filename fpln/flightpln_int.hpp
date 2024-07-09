@@ -3,6 +3,7 @@
 #include "flightplan.hpp"
 #include <libnav/awy_db.hpp>
 #include <libnav/str_utils.hpp>
+#include <libnav/common.hpp>
 #include <assert.h>
 
 
@@ -19,9 +20,21 @@ namespace test
     constexpr size_t N_ARR_DB_OFFSET = 2;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
+    // .fms row headers:
+    const std::string DFMS_DEP_NM = "ADEP";
+    const std::string DFMS_DEP_RWY_NM = "DEPRWY";
+    const std::string DFMS_SID_NM = "SID";
+    const std::string DFMS_SID_TRANS_NM = "SIDTRANS";
+    const std::string DFMS_ARR_NM = "ADES";
+    const std::string DFMS_ARR_RWY_NM = "DESRWY";
+    const std::string DFMS_STAR_NM = "STAR";
+    const std::string DFMS_STAR_TRANS_NM = "STARTRANS";
+    const std::string DFMS_N_ENRT_NM = "NUMENR";
 
 
     std::string get_appr_rwy(std::string& appr);
+
+    std::string get_dfms_rwy(std::string& rwy_nm);
 
 
     class FplnInt: public FlightPlan
@@ -30,6 +43,10 @@ namespace test
         FplnInt(std::shared_ptr<libnav::ArptDB> apt_db, 
             std::shared_ptr<libnav::NavaidDB> nav_db, std::shared_ptr<libnav::AwyDB> aw_db, 
             std::string cifp_path);
+
+        // Import from file:
+
+        libnav::DbErr load_from_fms(std::string& file_nm, bool set_arpts=true);
 
         // Airport functions:
 

@@ -27,6 +27,17 @@ namespace test
         return strutils::normalize_rnw_id(rw);
     }
 
+    std::string get_dfms_rwy(std::string& rwy_nm)
+    {
+        if(rwy_nm[0] == 'R' && rwy_nm[1] == 'W')
+        {
+            std::string ret = rwy_nm.substr(2, rwy_nm.size()-2);
+
+            return ret;
+        }
+        return "";
+    }
+
     // FplnInt member functions:
     // Public functions:
 
@@ -38,6 +49,90 @@ namespace test
         awy_db = aw_db;
         navaid_db = nav_db;
         proc_db.resize(N_PROC_DB_SZ);
+    }
+
+    libnav::DbErr FplnInt::load_from_fms(std::string& file_nm, bool set_arpts)
+    {
+        if(libnav::does_file_exist(file_nm))
+        {
+            std::ifstream file(file_nm);
+            if(file.is_open())
+            {
+                std::string line;
+                bool read_enrt = false;
+                //size_t n_enrt = 0;
+                while(getline(file, line))
+                {
+                    bool db_err = false;
+                    std::vector<std::string> ln_split = strutils::str_split(line);
+
+                    if(!read_enrt && ln_split.size() > 1)
+                    {
+                        if(ln_split[0] == DFMS_N_ENRT_NM)
+                        {
+                            //n_enrt = size_t(strutils::stoi_with_strip(ln_split[1]));
+                            read_enrt = true;
+                        }
+                        else if(set_arpts && ln_split[0] == DFMS_DEP_NM)
+                        {
+                            libnav::DbErr err = set_dep(ln_split[1]);
+                            if(err != libnav::DbErr::SUCCESS && 
+                                err != libnav::DbErr::PARTIAL_LOAD)
+                            {
+                                return err;
+                            }
+                        }
+                        else if(ln_split[0] == DFMS_DEP_RWY_NM)
+                        {
+                            std::string tmp_rwy = get_dfms_rwy(ln_split[1]);
+                            db_err = !set_dep_rwy(tmp_rwy);
+                        }
+                        else if(ln_split[0] == DFMS_SID_NM)
+                        {
+                            db_err = !set_arpt_proc(PROC_TYPE_SID, ln_split[1]);
+                        }
+                        else if(ln_split[0] == DFMS_SID_TRANS_NM)
+                        {
+                            db_err = !set_arpt_proc_trans(PROC_TYPE_SID, ln_split[1]);
+                        }
+                        else if(set_arpts && ln_split[0] == DFMS_ARR_NM)
+                        {
+                            libnav::DbErr err = set_arr(ln_split[1]);
+                            if(err != libnav::DbErr::SUCCESS && 
+                                err != libnav::DbErr::PARTIAL_LOAD)
+                            {
+                                return err;
+                            }
+                        }
+                        else if(ln_split[0] == DFMS_ARR_RWY_NM)
+                        {
+                            std::string tmp_rwy = get_dfms_rwy(ln_split[1]);
+                            db_err = !set_arr_rwy(tmp_rwy);
+                        }
+                        else if(ln_split[0] == DFMS_STAR_NM)
+                        {
+                            db_err = !set_arpt_proc(PROC_TYPE_STAR, ln_split[1], true);
+                        }
+                        else if(ln_split[0] == DFMS_SID_TRANS_NM)
+                        {
+                            db_err = !set_arpt_proc_trans(PROC_TYPE_STAR, ln_split[1], true);
+                        }
+                    }
+
+                    if(db_err)
+                    {
+                        return libnav::DbErr::DATA_BASE_ERROR;
+                    }
+                }
+
+                file.close();
+
+                return libnav::DbErr::SUCCESS;
+            }
+            
+            file.close();
+        }
+        return libnav::DbErr::FILE_NOT_FOUND;
     }
 
     libnav::DbErr FplnInt::set_dep(std::string icao)
