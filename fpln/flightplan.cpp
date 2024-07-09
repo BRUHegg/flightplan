@@ -348,7 +348,10 @@ namespace test
 
         std::vector<leg_t> legs_add = {leg};
 
-        fpl_segment_types dir_tp = next_seg->data.seg_type;
+        fpl_segment_types dir_tp = FPL_SEG_ENRT;
+
+        if(next_seg->data.seg_type > dir_tp)
+            dir_tp = next_seg->data.seg_type;
         if(prev_seg->data.seg_type > dir_tp)
             dir_tp = prev_seg->data.seg_type;
 

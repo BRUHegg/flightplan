@@ -26,8 +26,8 @@ int main()
 		"legset 12 L L LERGA",
 		"setproc 2 RNV31LZ ARR PROC",
 		"setproc 1 LERG1D ARR PROC",
-		"setdep YSSY",
-		"setarr LIMJ",
+		"setdep ESSA",
+		"setarr EDDF",
 		"load"
 	};
 	//pre_exec = {};

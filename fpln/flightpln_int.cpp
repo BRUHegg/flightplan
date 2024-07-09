@@ -61,6 +61,8 @@ namespace test
                 std::string line;
                 bool read_enrt = false;
                 dfms_arr_data_t arr_data;
+                std::string awy_last = "";
+                std::string end_last = "";
                 while(getline(file, line))
                 {
                     std::vector<std::string> ln_split = strutils::str_split(line);
@@ -84,22 +86,46 @@ namespace test
                     }
                     else if(read_enrt && ln_split.size() == N_DFMS_ENRT_WORDS)
                     {
+                        bool add_awy_seg = false;
                         if(ln_split[2] != DFMS_DEP_NM && ln_split[2] != DFMS_ARR_NM)
                         {
-                            if(ln_split[2] == DFMS_DIR_SEG_NM)
-                            {
-                                libnav::waypoint_t wpt;
-                                bool ret = get_dfms_wpt(ln_split, &wpt);
+                            libnav::waypoint_t wpt;
+                            bool ret = get_dfms_wpt(ln_split, &wpt);
+                            std::string wpt_id = wpt.get_awy_id();
 
-                                if(ret)
+                            if(ret)
+                            {
+                                if(ln_split[2] == DFMS_DIR_SEG_NM)
                                 {
-                                    awy_insert({nullptr, seg_list.id}, wpt.get_awy_id());
+                                    add_awy_seg = true;
+                                    awy_insert({nullptr, seg_list.id}, wpt_id);
                                 }
                                 else
                                 {
-                                    return libnav::DbErr::DATA_BASE_ERROR;
+                                    awy_last = ln_split[2];
+                                    end_last = wpt_id;
                                 }
                             }
+                            else
+                            {
+                                return libnav::DbErr::DATA_BASE_ERROR;
+                            }
+                        }
+                        else
+                        {
+                            add_awy_seg = true;
+                        }
+
+                        if(add_awy_seg)
+                        {
+                            if(awy_last != "" && end_last != "")
+                            {
+                                add_enrt_seg({nullptr, seg_list.id}, awy_last);
+                                awy_insert({&(seg_list.tail), seg_list.id}, 
+                                    end_last);
+                            }
+                            awy_last = "";
+                            end_last = "";
                         }
                     }
                 }
