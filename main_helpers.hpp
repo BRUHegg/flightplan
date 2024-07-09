@@ -702,15 +702,23 @@ namespace test
         {
             size_t from = idx;
             size_t to = ptr->first;
-            if(from > to)
-                std::swap(from, to);
-            if(from)
+            if(to != from)
             {
-                from--;
+                if(from > to)
+                {
+                    if(from+1 < legs.size())
+                        from++;
+                    std::swap(from, to);
+                }
+                else if(from)
+                {
+                    from--;
+                }
+
+                av->fpl->dir_from_to({legs[from].ptr, ptr->second}, 
+                    {legs[to].ptr, ptr->second});
+                ptr->second = -1;
             }
-            av->fpl->dir_from_to({legs[from].ptr, ptr->second}, 
-                {legs[to].ptr, ptr->second});
-            ptr->second = -1;
         }
     }
 
