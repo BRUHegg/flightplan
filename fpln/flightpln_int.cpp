@@ -86,19 +86,19 @@ namespace test
                     }
                     else if(read_enrt && ln_split.size() == N_DFMS_ENRT_WORDS)
                     {
+                        std::string wpt_id = "";
                         bool add_awy_seg = false;
                         if(ln_split[2] != DFMS_DEP_NM && ln_split[2] != DFMS_ARR_NM)
                         {
                             libnav::waypoint_t wpt;
                             bool ret = get_dfms_wpt(ln_split, &wpt);
-                            std::string wpt_id = wpt.get_awy_id();
+                            wpt_id = wpt.get_awy_id();
 
                             if(ret)
                             {
                                 if(ln_split[2] == DFMS_DIR_SEG_NM)
                                 {
                                     add_awy_seg = true;
-                                    awy_insert({nullptr, seg_list.id}, wpt_id);
                                 }
                                 else
                                 {
@@ -126,6 +126,9 @@ namespace test
                             }
                             awy_last = "";
                             end_last = "";
+
+                            if(wpt_id != "")
+                                awy_insert({nullptr, seg_list.id}, wpt_id);
                         }
                     }
                 }
