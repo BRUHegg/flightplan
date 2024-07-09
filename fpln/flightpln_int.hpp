@@ -18,6 +18,7 @@ namespace test
 
     constexpr size_t N_PROC_DB_SZ = 5;
     constexpr size_t N_ARR_DB_OFFSET = 2;
+    constexpr size_t N_DFMS_ENRT_WORDS = 6;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
     // .fms row headers:
@@ -30,6 +31,14 @@ namespace test
     const std::string DFMS_STAR_NM = "STAR";
     const std::string DFMS_STAR_TRANS_NM = "STARTRANS";
     const std::string DFMS_N_ENRT_NM = "NUMENR";
+
+    const std::string DFMS_DIR_SEG_NM = "DRCT";
+
+
+    struct dfms_arr_data_t
+    {
+        std::string star, star_trans, arr_rwy, arr_icao;
+    };
 
 
     std::string get_appr_rwy(std::string& appr);
@@ -125,6 +134,21 @@ namespace test
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
+
+        /*
+            Function: process_dfms_term_line
+            Description:
+            Processes a single line of .fms file describing airports/procedures
+            @param l_split: reference to the target split line
+            @return error code
+        */
+
+        libnav::DbErr process_dfms_proc_line(std::vector<std::string>& l_split, 
+            bool set_arpts, dfms_arr_data_t* arr_data);
+
+        libnav::DbErr set_dfms_arr_data(dfms_arr_data_t* arr_data, bool set_arpt);
+
+        bool get_dfms_wpt(std::vector<std::string>& l_split, libnav::waypoint_t* out);
 
         bool add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string seg_nm,
             seg_list_node_t *next=nullptr, bool set_ref=true);
