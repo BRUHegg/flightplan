@@ -499,12 +499,35 @@ namespace test
                 seg_list_node_t *prev = seg_list.tail.prev;
                 leg_list_node_t *end_leg = prev->data.end;
                 
-                if(prev->data.seg_type <= FPL_SEG_ENRT && end_leg != nullptr)
+                if(prev->data.seg_type <= FPL_SEG_ENRT && prev != &(seg_list.head))
                 {
-                    libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
-                    std::string end_leg_awy_id = end_fix.get_awy_id();
+                    bool add_seg = false;
 
-                    if(awy_db->is_in_awy(name, end_leg_awy_id))
+                    if(end_leg != nullptr)
+                    {
+                        libnav::waypoint_t end_fix = end_leg->data.leg.main_fix;
+                        std::string end_leg_awy_id = end_fix.get_awy_id();
+                        add_seg = awy_db->is_in_awy(name, end_leg_awy_id);
+                    }
+                    else if(prev->prev->data.seg_type > FPL_SEG_DEP_RWY)
+                    {
+                        leg_list_node_t *base_end_leg = prev->prev->data.end;
+                        if(base_end_leg != nullptr)
+                        {
+                            std::string base_awy_id = base_end_leg->data.leg.main_fix.get_awy_id();
+                            std::vector<libnav::awy_point_t> awy_pts;
+                            size_t n_pts = awy_db->get_aa_path(prev->data.name, 
+                                base_awy_id, name, &awy_pts);
+                            
+                            if(n_pts)
+                            {
+                                delete_segment(prev);
+                                add_awy_seg(prev->data.name, next.ptr, awy_pts);
+                                add_seg = true;
+                            }
+                        }
+                    }
+                    if(add_seg)
                     {
                         seg_list_node_t *seg_add = seg_stack.get_new();
                         if(seg_add != nullptr)
@@ -543,8 +566,8 @@ namespace test
                             if(awy_db->is_in_awy(name, prev_end_leg_awy_id))
                             {
                                 std::vector<libnav::awy_point_t> awy_pts;
-                                size_t n_pts = size_t(awy_db->get_path(name, end_leg_awy_id, 
-                                    prev_end_leg_awy_id, &awy_pts));
+                                size_t n_pts = awy_db->get_ww_path(name, 
+                                    end_leg_awy_id, prev_end_leg_awy_id, &awy_pts);
                                 
                                 if(n_pts)
                                 {
@@ -610,8 +633,8 @@ namespace test
                         std::string start_id = start_fix.get_awy_id();
 
                         std::vector<libnav::awy_point_t> awy_pts;
-                        size_t n_pts = size_t(awy_db->get_path(prev_name, start_id, end_id, 
-                            &awy_pts));
+                        size_t n_pts = size_t(awy_db->get_ww_path(prev_name, start_id, 
+                            end_id, &awy_pts));
                         
                         if(n_pts)
                         {
