@@ -880,7 +880,7 @@ namespace test
 
     libnav::DbErr FplnInt::set_dfms_arr_data(dfms_arr_data_t* arr_data, bool set_arpt)
     {
-        if(set_arpt)
+        if(set_arpt && arr_data->arr_icao != "")
         {
             libnav::DbErr err = set_arr(arr_data->arr_icao);
             if(err != libnav::DbErr::SUCCESS && 
@@ -890,13 +890,14 @@ namespace test
             }
         }
         std::string tmp_rwy = get_dfms_rwy(arr_data->arr_rwy);
-        if(!set_arr_rwy(tmp_rwy))
+        if(tmp_rwy != "" && !set_arr_rwy(tmp_rwy))
             return libnav::DbErr::DATA_BASE_ERROR;
         
-        if(!set_arpt_proc(PROC_TYPE_STAR, arr_data->star, true))
+        if(arr_data->star != "" && !set_arpt_proc(PROC_TYPE_STAR, arr_data->star, true))
             return libnav::DbErr::DATA_BASE_ERROR;
         
-        if(!set_arpt_proc_trans(PROC_TYPE_STAR, arr_data->star_trans, true))
+        if(arr_data->star_trans != "" && 
+            !set_arpt_proc_trans(PROC_TYPE_STAR, arr_data->star_trans, true))
             return libnav::DbErr::DATA_BASE_ERROR;
 
         return libnav::DbErr::SUCCESS;
