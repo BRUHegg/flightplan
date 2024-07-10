@@ -233,6 +233,7 @@ namespace test
             // If there is an arrival and departure was changed, clear arrival data
             if(arrival != nullptr)
             {
+                arr_rwy = "";
                 arr_rnw.clear();
                 proc_db[N_ARR_DB_OFFSET+PROC_TYPE_STAR].clear();
                 proc_db[N_ARR_DB_OFFSET+PROC_TYPE_APPCH].clear();

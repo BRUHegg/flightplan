@@ -131,6 +131,11 @@ namespace test
     {
         if(*ptr != nullptr && (*ptr)->icao_code == icao)
         {
+            if(!is_arr)
+            {
+                reset_fpln(is_arr);
+                return libnav::DbErr::SUCCESS;
+            }
             return libnav::DbErr::ERR_NONE;
         }
         libnav::Airport *tmp = new libnav::Airport(icao, arpt_db, 
