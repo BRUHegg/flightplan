@@ -145,6 +145,7 @@ namespace test
 
     void FplnInt::save_to_fms(std::string& file_nm, bool save_sid_star)
     {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
         if(!arpt_db->is_airport(departure->icao_code) || 
             !arpt_db->is_airport(arrival->icao_code))
         {
@@ -158,7 +159,7 @@ namespace test
         out << DFMS_AIRAC_CYCLE_NM + DFMS_COL_SEP + curr_cycle + "\n";
 
         out << DFMS_DEP_NM << DFMS_COL_SEP << departure->icao_code << "\n";
-        std::string dep_rwy = get_dep_rwy();
+        std::string dep_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
 
         if(dep_rwy != "")
         {
