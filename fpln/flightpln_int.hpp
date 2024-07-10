@@ -26,6 +26,7 @@ namespace test
     constexpr char DFMS_COL_SEP = ' ';
     constexpr uint8_t N_DFMS_OUT_PREC = 6;
     const std::string DFMS_PADDING = "I\n1100 Version\n";
+    const std::string DFMS_RWY_PREFIX = "RW";
     // .fms row headers:
     const std::string DFMS_AIRAC_CYCLE_NM = "CYCLE";
     const std::string DFMS_DEP_NM = "ADEP";

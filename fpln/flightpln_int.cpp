@@ -162,7 +162,7 @@ namespace test
 
         if(dep_rwy != "")
         {
-            out << DFMS_DEP_RWY_NM << DFMS_COL_SEP << dep_rwy << "\n";
+            out << DFMS_DEP_RWY_NM << DFMS_COL_SEP << DFMS_RWY_PREFIX+dep_rwy << "\n";
         }
         
         if(save_sid_star)
@@ -185,7 +185,7 @@ namespace test
 
         if(arr_rwy != "")
         {
-            out << DFMS_ARR_RWY_NM << DFMS_COL_SEP << arr_rwy << "\n";
+            out << DFMS_ARR_RWY_NM << DFMS_COL_SEP << DFMS_RWY_PREFIX+arr_rwy << "\n";
         }
 
         if(save_sid_star)
