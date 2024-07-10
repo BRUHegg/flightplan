@@ -259,13 +259,31 @@ namespace test
 
         if(dep_nm != "" && arr_nm != "")
         {
-            std::string file_nm = dep_nm+arr_nm+".fms";
+            std::string file_nm = dep_nm+arr_nm;
             libnav::DbErr err = av->fpl->load_from_fms(file_nm, false);
 
             if(err != libnav::DbErr::SUCCESS && err != libnav::DbErr::PARTIAL_LOAD)
             {
                 std::cout << "Failed to load flight plan\n";
             }
+        }
+    }
+
+    inline void save_fpln(Avionics* av, std::vector<std::string>& in)
+    {
+        if(in.size())
+        {
+            std::cout << "Command expects 0 arguments\n";
+            return;
+        }
+
+        std::string dep_nm = av->fpl->get_dep_icao();
+        std::string arr_nm = av->fpl->get_arr_icao();
+
+        if(dep_nm != "" && arr_nm != "")
+        {
+            std::string out_nm = dep_nm+arr_nm;
+            av->fpl->save_to_fms(out_nm);
         }
     }
 
@@ -789,6 +807,7 @@ namespace test
         {"quit", quit},
         {"q", quit},
         {"load", load_fpln},
+        {"save", save_fpln},
         {"setfilt", set_filter},
         {"fplinfo", fplinfo},
         {"setdep", set_fpl_dep},

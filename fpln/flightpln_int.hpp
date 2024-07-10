@@ -6,6 +6,7 @@
 #include <libnav/common.hpp>
 #include <assert.h>
 
+#include <iostream>
 
 namespace test
 {
@@ -21,7 +22,12 @@ namespace test
     constexpr size_t N_DFMS_ENRT_WORDS = 6;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
+    // X-Plane .fms format stuff
+    constexpr char DFMS_COL_SEP = ' ';
+    constexpr uint8_t N_DFMS_OUT_PREC = 6;
+    const std::string DFMS_PADDING = "I\n1100 Version\n";
     // .fms row headers:
+    const std::string DFMS_AIRAC_CYCLE_NM = "CYCLE";
     const std::string DFMS_DEP_NM = "ADEP";
     const std::string DFMS_DEP_RWY_NM = "DEPRWY";
     const std::string DFMS_SID_NM = "SID";
@@ -33,6 +39,8 @@ namespace test
     const std::string DFMS_N_ENRT_NM = "NUMENR";
 
     const std::string DFMS_DIR_SEG_NM = "DRCT";
+
+    const std::string DFMS_FILE_POSTFIX = ".fms";
 
 
     struct dfms_arr_data_t
@@ -53,9 +61,13 @@ namespace test
             std::shared_ptr<libnav::NavaidDB> nav_db, std::shared_ptr<libnav::AwyDB> aw_db, 
             std::string cifp_path);
 
-        // Import from file:
+        // Import from .fms file:
 
         libnav::DbErr load_from_fms(std::string& file_nm, bool set_arpts=true);
+
+        // Export to .fms file:
+
+        void save_to_fms(std::string& file_nm, bool save_sid_star=true);
 
         // Airport functions:
 
@@ -123,6 +135,8 @@ namespace test
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
 
 
+        // Static member functions:
+
         static size_t get_proc_db_idx(ProcType tp, bool is_arr=false);
 
         static fpl_segment_types get_proc_tp(ProcType tp);
@@ -134,6 +148,10 @@ namespace test
 
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
+
+        static std::string get_dfms_enrt_leg(leg_list_node_t* lg);
+
+        // Auxiliury functions for import from .fms:
 
         /*
             Function: process_dfms_term_line
@@ -149,6 +167,14 @@ namespace test
         libnav::DbErr set_dfms_arr_data(dfms_arr_data_t* arr_data, bool set_arpt);
 
         bool get_dfms_wpt(std::vector<std::string>& l_split, libnav::waypoint_t* out);
+
+        // Auxiliury functions for export to .fms:
+
+        std::string get_dfms_arpt_leg(bool is_arr=false);
+        
+        size_t get_dfms_enrt_legs(std::vector<std::string>* out);
+
+        // Other auxiliury functions:
 
         bool add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string seg_nm,
             seg_list_node_t *next=nullptr, bool set_ref=true);

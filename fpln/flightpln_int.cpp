@@ -53,9 +53,9 @@ namespace test
 
     libnav::DbErr FplnInt::load_from_fms(std::string& file_nm, bool set_arpts)
     {
-        if(libnav::does_file_exist(file_nm))
+        if(libnav::does_file_exist(file_nm+DFMS_FILE_POSTFIX))
         {
-            std::ifstream file(file_nm);
+            std::ifstream file(file_nm+DFMS_FILE_POSTFIX);
             if(file.is_open())
             {
                 std::string line;
@@ -141,6 +141,80 @@ namespace test
             file.close();
         }
         return libnav::DbErr::FILE_NOT_FOUND;
+    }
+
+    void FplnInt::save_to_fms(std::string& file_nm, bool save_sid_star)
+    {
+        if(!arpt_db->is_airport(departure->icao_code) || 
+            !arpt_db->is_airport(arrival->icao_code))
+        {
+            return;
+        }
+
+        std::ofstream out(file_nm+DFMS_FILE_POSTFIX, std::ofstream::out);
+
+        out << DFMS_PADDING;
+        std::string curr_cycle = std::to_string(navaid_db->get_wpt_cycle());
+        out << DFMS_AIRAC_CYCLE_NM + DFMS_COL_SEP + curr_cycle + "\n";
+
+        out << DFMS_DEP_NM << DFMS_COL_SEP << departure->icao_code << "\n";
+        std::string dep_rwy = get_dep_rwy();
+
+        if(dep_rwy != "")
+        {
+            out << DFMS_DEP_RWY_NM << DFMS_COL_SEP << dep_rwy << "\n";
+        }
+        
+        if(save_sid_star)
+        {
+            std::string sid_name = fpl_refs[FPL_SEG_SID].name;
+            std::string sid_trans_name = fpl_refs[FPL_SEG_SID_TRANS].name;
+
+            if(sid_name != "")
+            {
+                out << DFMS_SID_NM << DFMS_COL_SEP << sid_name << "\n";
+
+                if(sid_trans_name != "")
+                {
+                    out << DFMS_SID_TRANS_NM << DFMS_COL_SEP << sid_trans_name << "\n";
+                }
+            }
+        }
+
+        out << DFMS_ARR_NM << DFMS_COL_SEP << arrival->icao_code << "\n";
+
+        if(arr_rwy != "")
+        {
+            out << DFMS_ARR_RWY_NM << DFMS_COL_SEP << arr_rwy << "\n";
+        }
+
+        if(save_sid_star)
+        {
+            std::string star_name = fpl_refs[FPL_SEG_STAR].name;
+            std::string star_trans_name = fpl_refs[FPL_SEG_STAR_TRANS].name;
+
+            if(star_name != "")
+            {
+                out << DFMS_STAR_NM << DFMS_COL_SEP << star_name << "\n";
+
+                if(star_trans_name != "")
+                {
+                    out << DFMS_STAR_TRANS_NM << DFMS_COL_SEP << star_trans_name << "\n";
+                }
+            }
+        }
+
+        std::vector<std::string> vec;
+        size_t n_legs = get_dfms_enrt_legs(&vec);
+
+        out << DFMS_N_ENRT_NM << DFMS_COL_SEP << std::to_string(int(n_legs)) << "\n";
+
+        for(size_t i = 0; i < n_legs; i++)
+        {
+            out << vec[i] << "\n";
+        }
+
+        out.close();
     }
 
     libnav::DbErr FplnInt::set_dep(std::string icao)
@@ -723,6 +797,35 @@ namespace test
         return out;
     }
 
+    std::string FplnInt::get_dfms_enrt_leg(leg_list_node_t* lg)
+    {
+        leg_t leg = lg->data.leg;
+        libnav::navaid_type_t xp_type = libnav::libnav_to_xp_fix(leg.main_fix.data.type);
+        std::string type_str = std::to_string(int(xp_type));
+        std::string awy_nm = lg->data.seg->data.name;
+        std::string dfms_awy_nm = DFMS_DIR_SEG_NM;
+
+        if(awy_nm != DCT_LEG_NAME)
+        {
+            dfms_awy_nm = awy_nm;
+        }
+
+        double curr_alt_ft = 0;
+        if(leg.alt_desc == libnav::AltMode::AT)
+        {
+            curr_alt_ft = double(leg.alt2_ft);
+        }
+
+        std::string alt_str = strutils::double_to_str(curr_alt_ft, N_DFMS_OUT_PREC);
+        std::string lat_str = strutils::double_to_str(leg.main_fix.data.pos.lat_rad * 
+            geo::RAD_TO_DEG, N_DFMS_OUT_PREC);
+        std::string lon_str = strutils::double_to_str(leg.main_fix.data.pos.lat_rad * 
+            geo::RAD_TO_DEG, N_DFMS_OUT_PREC);
+
+        return type_str + DFMS_COL_SEP + leg.main_fix.id + DFMS_COL_SEP + dfms_awy_nm + 
+            DFMS_COL_SEP + alt_str + DFMS_COL_SEP + lat_str + DFMS_COL_SEP + lon_str;
+    }
+
     libnav::DbErr FplnInt::process_dfms_proc_line(std::vector<std::string>& l_split, 
         bool set_arpts, dfms_arr_data_t* arr_data)
     {
@@ -820,6 +923,69 @@ namespace test
         }
         
         return false;
+    }
+
+    std::string FplnInt::get_dfms_arpt_leg(bool is_arr)
+    {
+        libnav::Airport *ptr = departure;
+        std::string seg_nm = DFMS_DEP_NM;
+
+        if(is_arr)
+        {
+            ptr = arrival;
+            seg_nm = DFMS_ARR_NM;
+        }
+
+        std::string icao_cd = ptr->icao_code;
+
+        double alt_restr = 0;
+        double arpt_lat_deg = 0;
+        double arpt_lon_deg = 0;
+
+        libnav::airport_data_t arpt_data;
+        arpt_db->get_airport_data(icao_cd, &arpt_data);
+
+        alt_restr = arpt_data.elevation_ft;
+        arpt_lat_deg = arpt_data.pos.lat_rad * geo::RAD_TO_DEG;
+        arpt_lon_deg = arpt_data.pos.lon_rad * geo::RAD_TO_DEG;
+        
+        std::string alt_restr_str = strutils::double_to_str(alt_restr, N_DFMS_OUT_PREC);
+        std::string arpt_lat_str = strutils::double_to_str(arpt_lat_deg, N_DFMS_OUT_PREC);
+        std::string arpt_lon_str = strutils::double_to_str(arpt_lon_deg, N_DFMS_OUT_PREC);
+
+        std::string seg_tp = "1";
+
+        return seg_tp + DFMS_COL_SEP + icao_cd + DFMS_COL_SEP + seg_nm + DFMS_COL_SEP + 
+            alt_restr_str + DFMS_COL_SEP + arpt_lat_str + DFMS_COL_SEP + arpt_lon_str;
+    }
+        
+    size_t FplnInt::get_dfms_enrt_legs(std::vector<std::string>* out)
+    {
+        out->push_back(get_dfms_arpt_leg());
+
+        leg_list_node_t *start = &(leg_list.head);
+
+        while(start->next != &(leg_list.tail) && 
+            start->next->data.seg->data.seg_type < FPL_SEG_ENRT)
+        {
+            start = start->next;
+        }
+
+        while(start != &(leg_list.tail) && 
+            start->data.seg->data.seg_type <= FPL_SEG_ENRT)
+        {
+            if(!start->data.is_discon)
+            {
+                std::string tmp = get_dfms_enrt_leg(start);
+                out->push_back(tmp);
+            }
+
+            start = start->next;
+        }
+
+        out->push_back(get_dfms_arpt_leg(true));
+
+        return out->size();
     }
 
     bool FplnInt::add_fpl_seg(libnav::arinc_leg_seq_t& legs, fpl_segment_types seg_tp, std::string seg_nm,
