@@ -797,7 +797,7 @@ namespace test
         return out;
     }
 
-    std::string FplnInt::get_dfms_enrt_leg(leg_list_node_t* lg)
+    std::string FplnInt::get_dfms_enrt_leg(leg_list_node_t* lg, bool force_dir)
     {
         leg_t leg = lg->data.leg;
         libnav::navaid_type_t xp_type = libnav::libnav_to_xp_fix(leg.main_fix.data.type);
@@ -805,7 +805,7 @@ namespace test
         std::string awy_nm = lg->data.seg->data.name;
         std::string dfms_awy_nm = DFMS_DIR_SEG_NM;
 
-        if(awy_nm != DCT_LEG_NAME)
+        if(awy_nm != DCT_LEG_NAME && !force_dir)
         {
             dfms_awy_nm = awy_nm;
         }
@@ -971,13 +971,19 @@ namespace test
             start = start->next;
         }
 
+        bool first_leg = true;
+
         while(start != &(leg_list.tail) && 
             start->data.seg->data.seg_type <= FPL_SEG_ENRT)
         {
             if(!start->data.is_discon)
             {
-                std::string tmp = get_dfms_enrt_leg(start);
+                std::string tmp = get_dfms_enrt_leg(start, first_leg);
                 out->push_back(tmp);
+                if(first_leg)
+                {
+                    first_leg = false;
+                }
             }
 
             start = start->next;

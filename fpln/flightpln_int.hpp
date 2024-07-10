@@ -150,7 +150,7 @@ namespace test
         static std::vector<std::string> get_proc_trans(std::string proc, libnav::str_umap_t& db, 
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
 
-        static std::string get_dfms_enrt_leg(leg_list_node_t* lg);
+        static std::string get_dfms_enrt_leg(leg_list_node_t* lg, bool force_dir=false);
 
         // Auxiliury functions for import from .fms:
 
