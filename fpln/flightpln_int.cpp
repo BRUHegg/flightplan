@@ -819,7 +819,7 @@ namespace test
         std::string alt_str = strutils::double_to_str(curr_alt_ft, N_DFMS_OUT_PREC);
         std::string lat_str = strutils::double_to_str(leg.main_fix.data.pos.lat_rad * 
             geo::RAD_TO_DEG, N_DFMS_OUT_PREC);
-        std::string lon_str = strutils::double_to_str(leg.main_fix.data.pos.lat_rad * 
+        std::string lon_str = strutils::double_to_str(leg.main_fix.data.pos.lon_rad * 
             geo::RAD_TO_DEG, N_DFMS_OUT_PREC);
 
         return type_str + DFMS_COL_SEP + leg.main_fix.id + DFMS_COL_SEP + dfms_awy_nm + 
@@ -906,17 +906,17 @@ namespace test
     {
         libnav::navaid_type_t tp = libnav::navaid_type_t(
             strutils::stoi_with_strip(l_split[0]));
-        libnav::NavaidType nav_tp = libnav::xp_type_to_libnav(tp);
+        libnav::NavaidType nav_tp = libnav::xp_fix_type_to_libnav(tp);
 
         std::vector<libnav::waypoint_entry_t> wpt_entrs;
         size_t n_ent = navaid_db->get_wpt_data(l_split[1], &wpt_entrs, "", "", nav_tp);
 
         if(n_ent)
         {
-            double p_lat = double(strutils::stof_with_strip(l_split[4]));
-            double p_lon = double(strutils::stof_with_strip(l_split[5]));
+            double p_lat_rad = double(strutils::stof_with_strip(l_split[4])) * geo::DEG_TO_RAD;
+            double p_lon_rad = double(strutils::stof_with_strip(l_split[5])) * geo::DEG_TO_RAD;
 
-            libnav::sort_wpt_entry_by_dist(&wpt_entrs, {p_lat, p_lon});
+            libnav::sort_wpt_entry_by_dist(&wpt_entrs, {p_lat_rad, p_lon_rad});
 
             *out = {l_split[1], wpt_entrs[0]};
             return true;
