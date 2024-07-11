@@ -52,6 +52,17 @@ namespace test
         return "";
     }
 
+    //libnav::waypoint_t get_va_end_wpt(float va_alt_ft)
+    //{
+    //    
+    //}
+
+    //geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
+    //    leg_t *curr, leg_t *next, leg_seg_t *out)
+    //{
+    //    
+    //}
+
     // FplnInt member functions:
     // Public functions:
 
@@ -65,6 +76,10 @@ namespace test
         proc_db.resize(N_PROC_DB_SZ);
 
         fpl_id_calc = 0;
+
+
+        leg_seg_buf = new leg_seg_t[N_LEG_SEG_BUF_SZ];
+        n_leg_seg = 0;
     }
 
     libnav::DbErr FplnInt::load_from_fms(std::string& file_nm, bool set_arpts)
@@ -348,6 +363,13 @@ namespace test
             std::string curr_rwy = fpl_refs[FPL_SEG_DEP_RWY].name;
             if(rwy != curr_rwy)
             {
+                int data_found = arpt_db->get_rnw_data(departure->icao_code, 
+                    rwy, &dep_rnw_data);
+                if(!data_found)
+                {
+                    dep_rnw_data = {};
+                }
+
                 std::string curr_sid = fpl_refs[FPL_SEG_SID].name;
                 std::string curr_trans = fpl_refs[FPL_SEG_SID_TRANS].name;
                 delete_ref(FPL_SEG_SID_TRANS);
@@ -391,7 +413,15 @@ namespace test
         {
             if(arr_rwy != rwy)
             {
+                int data_found = arpt_db->get_rnw_data(arrival->icao_code, 
+                    rwy, &arr_rnw_data);
+                if(!data_found)
+                {
+                    arr_rnw_data = {};
+                }
+
                 arr_rwy = rwy;
+
                 libnav::arinc_rwy_data_t rwy_data = arr_rnw[rwy];
                 libnav::waypoint_t rwy_wpt = {arr_rwy, {libnav::NavaidType::RWY, 0, rwy_data.pos, 
                     arrival->icao_code, "", nullptr}};
@@ -753,6 +783,11 @@ namespace test
             return delete_singl_leg(next.ptr);
         }
         return false;
+    }
+
+    FplnInt::~FplnInt()
+    {
+        delete[] leg_seg_buf;
     }
 
     // Private functions:

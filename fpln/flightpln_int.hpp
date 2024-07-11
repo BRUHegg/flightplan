@@ -20,6 +20,7 @@
 #include <libnav/common.hpp>
 #include <assert.h>
 
+#include <iostream>
 
 namespace test
 {
@@ -31,8 +32,11 @@ namespace test
     };
 
     constexpr size_t N_PROC_DB_SZ = 5;
+    constexpr size_t N_LEG_SEG_BUF_SZ = 400;
     constexpr size_t N_ARR_DB_OFFSET = 2;
     constexpr size_t N_DFMS_ENRT_WORDS = 6;
+    constexpr double DEFAULT_VS_FPM = 2000;
+    constexpr double DEFAULT_GS_KTS = 250;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
     // X-Plane .fms format stuff
@@ -62,10 +66,22 @@ namespace test
         std::string star, star_trans, arr_rwy, arr_icao;
     };
 
+    struct leg_seg_t
+    {
+        bool is_arc, is_finite;
+        geo::point start, end, arc_ctr;
+        double turn_rad_nm;
+    };
+
 
     std::string get_appr_rwy(std::string& appr);
 
     std::string get_dfms_rwy(std::string& rwy_nm);
+
+    libnav::waypoint_t get_va_end_wpt(float va_alt_ft);
+
+    geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
+        leg_t *curr, leg_t *next, leg_seg_t *out);
 
 
     class FplnInt: public FlightPlan
@@ -139,6 +155,8 @@ namespace test
 
         bool delete_leg(timed_ptr_t<leg_list_node_t> next);
 
+        ~FplnInt();
+
     private:
         std::string arr_rwy;
 
@@ -147,8 +165,12 @@ namespace test
         std::shared_ptr<libnav::NavaidDB> navaid_db;
 
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
+        libnav::runway_entry_t dep_rnw_data, arr_rnw_data;
 
         double fpl_id_calc;
+
+        leg_seg_t *leg_seg_buf;
+        size_t n_leg_seg;
 
 
         // Static member functions:
