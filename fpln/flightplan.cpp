@@ -51,6 +51,10 @@ namespace test
         
         leg_list.head.data.seg = &seg_list.head;
         leg_list.tail.data.seg = &seg_list.tail;
+
+
+        start = std::chrono::steady_clock::now();
+        fpl_id_curr = 0;
     }
 
     size_t FlightPlan::get_leg_list_sz()
@@ -180,6 +184,8 @@ namespace test
         {
             subdivide(start, end);
         }
+
+        update_id();
     }
 
     void FlightPlan::delete_ref(fpl_segment_types ref)
@@ -228,6 +234,8 @@ namespace test
         {
             add_discon(seg);
         }
+
+        update_id();
     }
 
     void FlightPlan::add_segment(std::vector<leg_t>& legs, 
@@ -261,6 +269,8 @@ namespace test
                 seg_tp != next->data.seg_type)
                 fpl_refs[size_t(seg_tp)].ptr = seg_add;
             seg_list.insert_before(next, seg_add);
+
+            update_id();
         }
     }
 
@@ -290,6 +300,8 @@ namespace test
             {
                 fpl_refs[size_t(prev_seg_tp)].ptr = seg_add;
             }
+
+            update_id();
         }
     }
 
@@ -374,7 +386,10 @@ namespace test
             dir_tp = prev_seg->data.seg_type;
 
         if(next_leg != &leg_list.tail)
+        {
             next_seg = subdivide(prev_leg, next_leg);
+            update_id();
+        }
 
         if(next_seg != nullptr && !legcmp(prev_leg->data.leg, leg) && 
             !legcmp(next_leg->data.leg, leg))
@@ -414,6 +429,13 @@ namespace test
     }
 
     // Private member functions:
+
+    void FlightPlan::update_id()
+    {
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<double> dur = now - start;
+        fpl_id_curr = dur.count();
+    }
 
     void FlightPlan::reset_fpln(bool leave_dep_rwy)
     {

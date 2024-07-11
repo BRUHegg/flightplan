@@ -196,6 +196,10 @@ namespace test
 
         std::mutex fpl_mtx;
 
+        std::chrono::time_point<std::chrono::steady_clock> start;
+
+        double fpl_id_curr;
+
 
         bool legcmp(leg_t& leg1, leg_t& leg2);
 
@@ -244,6 +248,8 @@ namespace test
         
         std::string cifp_dir_path;
 
+
+        void update_id();
 
         // WARNING: these do not lock flight plan mutex
         void reset_fpln(bool leave_dep_rwy=false);

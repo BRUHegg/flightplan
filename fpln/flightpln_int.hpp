@@ -148,6 +148,8 @@ namespace test
 
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
 
+        double fpl_id_calc;
+
 
         // Static member functions:
 
@@ -164,6 +166,8 @@ namespace test
             libnav::arinc_rwy_db_t& rwy_db, bool is_rwy=false);
 
         static std::string get_dfms_enrt_leg(leg_list_node_t* lg, bool force_dir=false);
+
+        // Non-static member functions:
 
         // Auxiliury functions for import from .fms:
 

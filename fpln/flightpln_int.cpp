@@ -63,6 +63,8 @@ namespace test
         awy_db = aw_db;
         navaid_db = nav_db;
         proc_db.resize(N_PROC_DB_SZ);
+
+        fpl_id_calc = 0;
     }
 
     libnav::DbErr FplnInt::load_from_fms(std::string& file_nm, bool set_arpts)
@@ -407,6 +409,7 @@ namespace test
 
                 add_legs(rwy_leg, legs, FPL_SEG_APPCH, arr_rwy);
                 fpl_refs[size_t(FPL_SEG_APPCH)].name = arr_rwy;
+
             }
             
             return true;
@@ -588,13 +591,17 @@ namespace test
                                 {
                                     delete_segment(prev);
                                     add_awy_seg(name, next.ptr, awy_pts);
+
                                     return true;
                                 }
                             }
                         }
                         fpl_segment_types prev_tp = prev->data.seg_type;
                         if(!(prev->data.is_discon))
+                        {
                             delete_segment(prev, true, true);
+                        }
+                            
                         seg_list_node_t *seg_add = seg_stack.get_new();
                         if(seg_add != nullptr)
                         {
@@ -684,6 +691,7 @@ namespace test
             if(!curr.ptr->data.is_discon && !curr.ptr->data.is_direct)
             {
                 delete_segment(curr.ptr, true, false, true);
+
                 return true;
             }
         }
@@ -705,7 +713,6 @@ namespace test
             }
 
             delete_segment(curr.ptr, false, true);
-
             return true;
         }
 
@@ -749,6 +756,8 @@ namespace test
     }
 
     // Private functions:
+
+    // Static member functions:
 
     size_t FplnInt::get_proc_db_idx(ProcType tp, bool is_arr)
     {
@@ -865,6 +874,8 @@ namespace test
         return type_str + DFMS_COL_SEP + leg.main_fix.id + DFMS_COL_SEP + dfms_awy_nm + 
             DFMS_COL_SEP + alt_str + DFMS_COL_SEP + lat_str + DFMS_COL_SEP + lon_str;
     }
+
+    // Non-static member functions:
 
     libnav::DbErr FplnInt::process_dfms_proc_line(std::vector<std::string>& l_split, 
         bool set_arpts, dfms_arr_data_t* arr_data)
@@ -1291,11 +1302,13 @@ namespace test
         {
             delete_ref(t_tp);
             fpl_refs[t_idx].name = trans;
+
             return false;
         }
         else if(curr_proc == "")
         {
             delete_ref(t_tp);
+
             return false;
         }
         libnav::Airport *apt = departure;
