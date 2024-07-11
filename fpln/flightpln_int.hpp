@@ -6,7 +6,6 @@
 #include <libnav/common.hpp>
 #include <assert.h>
 
-#include <iostream>
 
 namespace test
 {
