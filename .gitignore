@@ -1,6 +1,7 @@
 build/
 .vscode/
 refs/
+flightplans/
 libnavtest
 libnavtest.exe
 777_arpt.dat
