@@ -259,7 +259,7 @@ namespace test
 
         if(dep_nm != "" && arr_nm != "")
         {
-            std::string file_nm = dep_nm+arr_nm;
+            std::string file_nm = "flightplans/"+dep_nm+arr_nm;
             libnav::DbErr err = av->fpl->load_from_fms(file_nm, false);
 
             if(err != libnav::DbErr::SUCCESS && err != libnav::DbErr::PARTIAL_LOAD)
@@ -282,7 +282,7 @@ namespace test
 
         if(dep_nm != "" && arr_nm != "")
         {
-            std::string out_nm = dep_nm+arr_nm;
+            std::string out_nm = "flightplans/"+dep_nm+arr_nm;
             av->fpl->save_to_fms(out_nm);
         }
     }
