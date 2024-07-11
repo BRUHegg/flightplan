@@ -96,7 +96,8 @@ namespace test
 
                             if(ret)
                             {
-                                if(ln_split[2] == DFMS_DIR_SEG_NM)
+                                if(ln_split[2] == DFMS_DIR_SEG_NM || 
+                                    (ln_split[2] != awy_last && awy_last != ""))
                                 {
                                     add_awy_seg = true;
                                 }
@@ -992,7 +993,8 @@ namespace test
         leg_list_node_t *start = &(leg_list.head);
 
         while(start->next != &(leg_list.tail) && 
-            start->next->data.seg->data.seg_type < FPL_SEG_ENRT)
+            (start->next->data.seg->data.seg_type < FPL_SEG_ENRT || 
+            start->data.seg->data.seg_type == FPL_SEG_DEP_RWY))
         {
             start = start->next;
         }
