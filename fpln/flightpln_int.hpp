@@ -78,7 +78,8 @@ namespace test
 
     std::string get_dfms_rwy(std::string& rwy_nm);
 
-    libnav::waypoint_t get_va_end_wpt(float va_alt_ft);
+    libnav::waypoint_t get_va_ca_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
+        libnav::runway_entry_t *rnw_data);
 
     geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
         leg_t *curr, leg_t *next, leg_seg_t *out);

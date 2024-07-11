@@ -52,10 +52,32 @@ namespace test
         return "";
     }
 
-    //libnav::waypoint_t get_va_end_wpt(float va_alt_ft)
-    //{
-    //    
-    //}
+    libnav::waypoint_t get_va_ca_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
+        libnav::runway_entry_t *rnw_data)
+    {
+        double t_clb_min = va_alt_ft / DEFAULT_VS_FPM;
+        double t_clb_hr = t_clb_min / 60;
+        double clb_nm = t_clb_hr * DEFAULT_GS_KTS;
+
+        if(rnw_data != nullptr)
+        {
+            clb_nm += rnw_data->get_impl_length_m() * geo::M_TO_FT;
+        }
+
+        geo::point curr = geo::get_pos_from_brng_dist(prev, 
+            brng_deg * geo::DEG_TO_RAD, clb_nm);
+        
+        libnav::waypoint_t out;
+        out.id = "(" + std::to_string(int(va_alt_ft)) + ")";
+        out.data.pos = curr;
+        out.data.arinc_type = 0;
+        out.data.area_code = "";
+        out.data.country_code = "";
+        out.data.type = libnav::NavaidType::WAYPOINT;
+        out.data.navaid = nullptr;
+
+        return out;
+    }
 
     //geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
     //    leg_t *curr, leg_t *next, leg_seg_t *out)
