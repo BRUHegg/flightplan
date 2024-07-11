@@ -1,3 +1,17 @@
+/*
+	This project is licensed under
+	Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License (CC BY-NC-SA 4.0).
+
+	A SUMMARY OF THIS LICENSE CAN BE FOUND HERE: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+	Author: discord/bruh4096#4512
+
+	This file contains structs used for the linked list implementation. Pointers to 
+    all of the available nodes of this linked list are stored on a stack. The nodes 
+    themselves belong to a continuois block of memory.
+*/
+
+
 #pragma once
 
 #include <cstdint>

@@ -1,3 +1,16 @@
+/*
+	This project is licensed under
+	Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License (CC BY-NC-SA 4.0).
+
+	A SUMMARY OF THIS LICENSE CAN BE FOUND HERE: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+	Author: discord/bruh4096#4512
+
+	This file contains definitions of member functions for flightplan class. This class
+    acts as a container that holds arinc424 legs.
+*/
+
+
 #include "flightplan.hpp"
 #include <iostream>
 
