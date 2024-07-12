@@ -39,6 +39,7 @@ namespace test
     constexpr double DEFAULT_VS_FPM = 2000;
     constexpr double DEFAULT_GS_KTS = 250;
     constexpr double CLB_RATE_FT_PER_NM = 500;
+    constexpr double TURN_RADIUS_NM = 1.5; // Untill there is a VNAV
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
     // X-Plane .fms format stuff
@@ -63,6 +64,19 @@ namespace test
     const std::string DFMS_FILE_POSTFIX = ".fms";
 
     const std::set<std::string> NOT_FOLLOWED_BY_DF = {"AF", "CI", "PI", "RF", "VI"};
+    // The following set contains legs that allow to be offset by a turn(onto 
+    /// the current leg)
+    const std::set<std::string> TURN_OFFS_LEGS = {"DF", "CI", "CA", "CD", 
+        "CR", "VA", "VI", "VR"};  
+    //const std::map<std::string, std::set<std::string>> ILLEGAL_NEXT_LEG = {
+    //    {"AF", {"DF", "IF", "PI"}},
+    //    {"CA", {"AF", "HA", "HF", "HM", "PI", "RF", "TF"}},
+    //    {"CD", {"HA", "HF", "HM", "PI", "RF", "TF"}},
+    //    {"CF", {"IF"}},
+    //    {"CI", {"CA", "CD", "CD", "CR", "DF", "HA", "HF", "HM", "PI", "RF", 
+    //    "TF", "VA", "VD", "VI", "VM", "VR"}},
+    //    {}
+    //};
 
 
     struct dfms_arr_data_t
@@ -70,24 +84,15 @@ namespace test
         std::string star, star_trans, arr_rwy, arr_icao;
     };
 
-    struct leg_seg_t
-    {
-        bool is_arc, is_finite;
-        geo::point start, end, arc_ctr;
-        std::string end_nm;
-        double turn_rad_nm;
-    };
-
 
     std::string get_appr_rwy(std::string& appr);
 
     std::string get_dfms_rwy(std::string& rwy_nm);
 
-    libnav::waypoint_t get_xa_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
-        libnav::runway_entry_t *rnw_data);
+    geo::point get_xa_end_point(geo::point prev, float brng_deg, float va_alt_ft, 
+        libnav::runway_entry_t *rnw_data, double clb_ft_nm=CLB_RATE_FT_PER_NM);
 
-    geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
-        leg_t *curr, leg_t *next, leg_seg_t *out);
+    libnav::waypoint_t get_ca_va_wpt(geo::point pos, int n_ft);
 
 
     class FplnInt: public FlightPlan
@@ -125,9 +130,13 @@ namespace test
 
         std::string get_dep_rwy();
 
+        libnav::runway_entry_t get_dep_rwy_data();
+
         bool set_arr_rwy(std::string& rwy);
 
         std::string get_arr_rwy();
+
+        libnav::runway_entry_t get_arr_rwy_data();
 
         // Airport procedure functions:
 
@@ -250,5 +259,11 @@ namespace test
         bool set_appch(std::string appch);
 
         bool set_proc_trans(ProcType tp, std::string trans, bool is_arr=false);
+
+        // Calculation functions:
+
+        geo::point get_leg_start(leg_seg_t curr_seg, leg_t next);
+
+        void calculate_leg(leg_list_node_t *leg, double hdg_trk_diff);
     };
 } // namespace test

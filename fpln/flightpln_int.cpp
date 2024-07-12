@@ -52,10 +52,10 @@ namespace test
         return "";
     }
 
-    libnav::waypoint_t get_xa_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
-        libnav::runway_entry_t *rnw_data)
+    geo::point get_xa_end_point(geo::point prev, float brng_deg, float va_alt_ft, 
+        libnav::runway_entry_t *rnw_data, double clb_ft_nm)
     {
-        double clb_nm = va_alt_ft / CLB_RATE_FT_PER_NM;
+        double clb_nm = va_alt_ft / clb_ft_nm;
 
         if(rnw_data != nullptr)
         {
@@ -64,10 +64,15 @@ namespace test
 
         geo::point curr = geo::get_pos_from_brng_dist(prev, 
             brng_deg * geo::DEG_TO_RAD, clb_nm);
-        
+
+        return curr;
+    }
+
+    libnav::waypoint_t get_ca_va_wpt(geo::point pos, int n_ft)
+    {
         libnav::waypoint_t out;
-        out.id = "(" + std::to_string(int(va_alt_ft)) + ")";
-        out.data.pos = curr;
+        out.id = "(" + std::to_string(n_ft) + ")";
+        out.data.pos = pos;
         out.data.arinc_type = 0;
         out.data.area_code = "";
         out.data.country_code = "";
@@ -425,6 +430,12 @@ namespace test
         return "";
     }
 
+    libnav::runway_entry_t FplnInt::get_dep_rwy_data()
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        return dep_rnw_data;
+    }
+
     bool FplnInt::set_arr_rwy(std::string& rwy)
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
@@ -472,6 +483,12 @@ namespace test
     {
         std::lock_guard<std::mutex> lock(fpl_mtx);
         return arr_rwy;
+    }
+
+    libnav::runway_entry_t FplnInt::get_arr_rwy_data()
+    {
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        return arr_rnw_data;
     }
 
     std::vector<std::string> FplnInt::get_arpt_proc(ProcType tp, bool is_arr,
@@ -1441,5 +1458,68 @@ namespace test
         }
 
         return false;
+    }
+
+    geo::point FplnInt::get_leg_start(leg_seg_t curr_seg, leg_t next)
+    {
+        if(TURN_OFFS_LEGS.find(next.leg_type) != TURN_OFFS_LEGS.end())
+        {
+            if(next.leg_type == "DF")
+            {
+                
+            }
+        }
+    }
+
+    void FplnInt::calculate_leg(leg_list_node_t *leg, double hdg_trk_diff)
+    {
+        leg_t curr_arinc_leg = leg->data.leg;
+
+        if(curr_arinc_leg.leg_type == "IF")
+        {
+            geo::point main_fix_pos = curr_arinc_leg.main_fix.data.pos;
+            leg->next->data.misc_data.start = main_fix_pos;
+            leg->data.misc_data.is_arc = false;
+            leg->data.misc_data.is_finite = true;
+            leg->data.misc_data.start = main_fix_pos;
+            leg->data.misc_data.end = main_fix_pos;
+            leg->data.misc_data.turn_rad_nm = 0;
+        }
+        else if(curr_arinc_leg.leg_type == "CA" || curr_arinc_leg.leg_type == "VA")
+        {
+            libnav::runway_entry_t *rwy_ent = nullptr;
+            if(leg->prev->data.seg->data.seg_type == FPL_SEG_DEP_RWY)
+            {
+                rwy_ent = &dep_rnw_data;
+            }
+            else if(leg->prev->data.leg.main_fix.data.type == libnav::NavaidType::RWY)
+            {
+                rwy_ent = &arr_rnw_data;
+            }
+
+            float mag_var = 0;
+
+            libnav::navaid_entry_t *recd_nav_entry = curr_arinc_leg.recd_navaid.data.navaid;
+
+            if(recd_nav_entry && curr_arinc_leg.leg_type == "CA")
+            {
+                mag_var = float(recd_nav_entry->mag_var);
+            }
+            else if(curr_arinc_leg.leg_type == "VA")
+            {
+                mag_var = hdg_trk_diff;
+            }
+
+            geo::point end_pt = get_xa_end_point(leg->data.misc_data.start, 
+                curr_arinc_leg.outbd_crs_deg+mag_var, curr_arinc_leg.alt1_ft, rwy_ent);
+            libnav::waypoint_t end_wpt = get_ca_va_wpt(end_pt, int(curr_arinc_leg.alt1_ft));
+
+            leg->data.misc_data.end = end_pt;
+            leg->data.leg.main_fix = end_wpt;
+            leg->data.leg.outbd_dist_time = curr_arinc_leg.alt1_ft / float(CLB_RATE_FT_PER_NM);
+            leg->data.leg.outbd_dist_as_time = false;
+
+
+        }
     }
 } // namespace test

@@ -60,6 +60,20 @@ namespace test
     };
 
 
+    struct leg_seg_t
+    {
+        bool is_arc, is_finite;
+        geo::point start, end;
+        double turn_rad_nm;
+    };
+
+    struct nd_leg_data_t
+    {
+        leg_seg_t leg_data;
+        geo::point arc_ctr;
+        std::string end_name;
+    };
+
     struct leg_list_data_t;
 
     struct fpl_seg_t
@@ -76,6 +90,8 @@ namespace test
     {
         leg_t leg;
         bool is_discon;
+        bool is_calculated=false;
+        leg_seg_t misc_data;
         struct_util::list_node_t<fpl_seg_t> *seg;
     };
 
