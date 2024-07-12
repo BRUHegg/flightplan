@@ -19,6 +19,7 @@
 #include <libnav/str_utils.hpp>
 #include <libnav/common.hpp>
 #include <assert.h>
+#include <set>
 
 #include <iostream>
 
@@ -60,6 +61,8 @@ namespace test
     const std::string DFMS_DIR_SEG_NM = "DRCT";
 
     const std::string DFMS_FILE_POSTFIX = ".fms";
+
+    const std::set<std::string> NOT_FOLLOWED_BY_DF = {"AF", "CI", "PI", "RF", "VI"};
 
 
     struct dfms_arr_data_t

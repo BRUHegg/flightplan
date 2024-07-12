@@ -832,7 +832,15 @@ namespace test
                 else if(leg_curr->prev != &(leg_list.head) && 
                     leg_curr->data.leg.leg_type == "IF")
                 {
-                    leg_curr->data.leg.leg_type = "CF";
+                    std::string prev_type = leg_curr->prev->data.leg.leg_type;
+                    if(NOT_FOLLOWED_BY_DF.find(prev_type) != NOT_FOLLOWED_BY_DF.end())
+                    {
+                        leg_curr->data.leg.leg_type = "CF";
+                    }
+                    else
+                    {
+                        leg_curr->data.leg.leg_type = "DF";
+                    }
                 }
                 leg_curr = next_leg;
             }
