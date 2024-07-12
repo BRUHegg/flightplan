@@ -52,12 +52,10 @@ namespace test
         return "";
     }
 
-    libnav::waypoint_t get_va_ca_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
+    libnav::waypoint_t get_xa_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
         libnav::runway_entry_t *rnw_data)
     {
-        double t_clb_min = va_alt_ft / DEFAULT_VS_FPM;
-        double t_clb_hr = t_clb_min / 60;
-        double clb_nm = t_clb_hr * DEFAULT_GS_KTS;
+        double clb_nm = va_alt_ft / CLB_RATE_FT_PER_NM;
 
         if(rnw_data != nullptr)
         {
@@ -805,6 +803,41 @@ namespace test
             return delete_singl_leg(next.ptr);
         }
         return false;
+    }
+
+    void FplnInt::update(double hdg_trk_diff)
+    {
+        (void)hdg_trk_diff;
+        std::lock_guard<std::mutex> lock(fpl_mtx);
+        if(fpl_id_calc != fpl_id_curr)
+        {
+            leg_list_node_t *leg_curr = leg_list.head.next;
+
+            while(leg_curr != &(leg_list.tail))
+            {
+                leg_list_node_t *next_leg = leg_curr->next;
+                // Delete double discons:
+                if(leg_curr->data.is_discon && (leg_curr->prev->data.is_discon || 
+                    leg_curr->prev == &(leg_list.head)))
+                {
+                    delete_segment(leg_curr->data.seg, false);
+                    leg_curr = next_leg;
+                    continue;
+                }
+
+                if(leg_curr->prev->data.is_discon)
+                {
+                    leg_curr->data.leg.leg_type = "IF";
+                }
+                else if(leg_curr->prev != &(leg_list.head) && 
+                    leg_curr->data.leg.leg_type == "IF")
+                {
+                    leg_curr->data.leg.leg_type = "CF";
+                }
+                leg_curr = next_leg;
+            }
+            fpl_id_calc = fpl_id_curr;
+        }
     }
 
     FplnInt::~FplnInt()

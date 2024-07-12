@@ -134,6 +134,7 @@ namespace test
         void update()
         {
             update_pos();
+            fpl->update(0);
         }
 
         ~Avionics()

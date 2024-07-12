@@ -43,12 +43,16 @@ namespace test
 
         seg_list.head.data.is_discon = false;
         seg_list.tail.data.is_discon = false;
+        seg_list.head.data.is_direct = false;
+        seg_list.tail.data.is_direct = false;
         seg_list.head.data.end = &leg_list.head;
         seg_list.tail.data.end = &leg_list.tail;
 
         seg_list.head.data.seg_type = FPL_SEG_NONE;
         seg_list.tail.data.seg_type = FPL_SEG_NONE;
         
+        leg_list.head.data.is_discon = false;
+        leg_list.tail.data.is_discon = false;
         leg_list.head.data.seg = &seg_list.head;
         leg_list.tail.data.seg = &seg_list.tail;
 

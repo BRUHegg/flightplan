@@ -37,6 +37,7 @@ namespace test
     constexpr size_t N_DFMS_ENRT_WORDS = 6;
     constexpr double DEFAULT_VS_FPM = 2000;
     constexpr double DEFAULT_GS_KTS = 250;
+    constexpr double CLB_RATE_FT_PER_NM = 500;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
     // X-Plane .fms format stuff
@@ -70,6 +71,7 @@ namespace test
     {
         bool is_arc, is_finite;
         geo::point start, end, arc_ctr;
+        std::string end_nm;
         double turn_rad_nm;
     };
 
@@ -78,7 +80,7 @@ namespace test
 
     std::string get_dfms_rwy(std::string& rwy_nm);
 
-    libnav::waypoint_t get_va_ca_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
+    libnav::waypoint_t get_xa_end_wpt(geo::point prev, float brng_deg, float va_alt_ft, 
         libnav::runway_entry_t *rnw_data);
 
     geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
@@ -155,6 +157,10 @@ namespace test
         void add_direct(libnav::waypoint_t wpt, timed_ptr_t<leg_list_node_t> next);
 
         bool delete_leg(timed_ptr_t<leg_list_node_t> next);
+
+        // Calculation function
+
+        void update(double hdg_trk_diff);
 
         ~FplnInt();
 
