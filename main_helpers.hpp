@@ -505,11 +505,16 @@ namespace test
 
     inline void print_legs(Avionics *av, std::vector<std::string>& in)
     {
-        if(in.size() != 0)
+        if(in.size() != 1)
         {
-            std::cout << "Command expects 0 arguments\n";
+            std::cout << "Command expects 1 argument: layout{1/2}\n";
             return;
         }
+
+        bool show_dist_trk = in[0] == "2";
+
+        if(in[0] != "1" && in[0] != "2")
+            return;
 
         auto legs = av->get_legs_list();
 
@@ -527,7 +532,7 @@ namespace test
                 }
                 double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
                 double lon_deg = i.data.leg.main_fix.data.pos.lon_rad * geo::RAD_TO_DEG;
-                if(i.data.leg.leg_type != "IF")
+                if(i.data.leg.leg_type != "IF" && show_dist_trk)
                 {
                     float brng_deg = i.data.leg.outbd_crs_deg;
                     float dist_nm = i.data.leg.outbd_dist_time;
@@ -535,7 +540,9 @@ namespace test
                     std::string dist_str = strutils::double_to_str(double(dist_nm), 6);
                     std::cout << brng_str << " " << dist_str << "\n";
                 }
-                std::string pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
+                std::string pos = "";
+                if(!show_dist_trk)
+                    pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
                 std::string misc_data = i.data.leg.main_fix.id + " " + i.data.leg.leg_type;
 
                 std::cout << misc_data + " " + pos << "\n";

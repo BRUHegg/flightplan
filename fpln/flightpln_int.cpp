@@ -1607,6 +1607,12 @@ namespace test
     {
         leg_t curr_arinc_leg = leg->data.leg;
 
+        if(leg->prev != &(leg_list.head) && !leg->prev->data.is_discon)
+        {
+            leg->data.misc_data.start = get_leg_start(leg->prev->data.misc_data, 
+                leg->prev->data.leg, curr_arinc_leg);
+        }
+
         if(curr_arinc_leg.leg_type == "IF")
         {
             geo::point main_fix_pos = curr_arinc_leg.main_fix.data.pos;
@@ -1645,7 +1651,10 @@ namespace test
                 curr_arinc_leg.outbd_crs_deg+mag_var, curr_arinc_leg.alt1_ft, rwy_ent);
             libnav::waypoint_t end_wpt = get_ca_va_wpt(end_pt, int(curr_arinc_leg.alt1_ft));
 
+            leg->data.misc_data.is_arc = false;
+            leg->data.misc_data.is_finite = true;
             leg->data.misc_data.end = end_pt;
+
             leg->data.leg.main_fix = end_wpt;
             leg->data.leg.outbd_dist_time = curr_arinc_leg.alt1_ft / float(CLB_RATE_FT_PER_NM);
             leg->data.leg.outbd_dist_as_time = false;
@@ -1664,9 +1673,10 @@ namespace test
             
             leg->data.leg.outbd_dist_time = curr_start.get_gc_dist_nm(curr_end);
             leg->data.leg.outbd_dist_as_time = false;
-        }
 
-        leg->next->data.misc_data.start = get_leg_start(leg->data.misc_data, 
-            leg->data.leg, leg->next->data.leg);
+            leg->data.misc_data.is_arc = false;
+            leg->data.misc_data.is_finite = true;
+            leg->data.misc_data.end = curr_end;
+        }
     }
 } // namespace test
