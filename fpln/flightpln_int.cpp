@@ -1684,5 +1684,8 @@ namespace test
             leg->data.misc_data.is_finite = true;
             leg->data.misc_data.end = curr_end;
         }
+
+        if(leg->data.misc_data.true_trk_deg > 360)
+            leg->data.misc_data.true_trk_deg -= 360;
     }
 } // namespace test
