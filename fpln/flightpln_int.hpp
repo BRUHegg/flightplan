@@ -40,6 +40,8 @@ namespace test
     constexpr double DEFAULT_GS_KTS = 250;
     constexpr double CLB_RATE_FT_PER_NM = 500;
     constexpr double TURN_RADIUS_NM = 1.5; // Untill there is a VNAV
+    constexpr double ASSUMED_RNP_PROC_NM = 1;
+    constexpr double ASSUMED_RNP_ENRT_NM = 3;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
     // X-Plane .fms format stuff
@@ -93,6 +95,8 @@ namespace test
         libnav::runway_entry_t *rnw_data, double clb_ft_nm=CLB_RATE_FT_PER_NM);
 
     libnav::waypoint_t get_ca_va_wpt(geo::point pos, int n_ft);
+
+    double get_rnp(leg_list_node_t *leg);
 
 
     class FplnInt: public FlightPlan
@@ -262,7 +266,7 @@ namespace test
 
         // Calculation functions:
 
-        geo::point get_leg_start(leg_seg_t curr_seg, leg_t next);
+        geo::point get_leg_start(leg_seg_t curr_seg, leg_t curr_leg, leg_t next);
 
         void calculate_leg(leg_list_node_t *leg, double hdg_trk_diff);
     };

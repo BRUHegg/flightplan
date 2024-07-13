@@ -82,11 +82,18 @@ namespace test
         return out;
     }
 
-    //geo::point compute_leg(geo::point start, double hdg_trk_diff_deg, leg_t *prev, 
-    //    leg_t *curr, leg_t *next, leg_seg_t *out)
-    //{
-    //    
-    //}
+    double get_rnp(leg_list_node_t *leg)
+    {
+        if(leg->data.leg.rnp != 0)
+            return double(leg->data.leg.rnp);
+
+        fpl_segment_types seg_tp = leg->data.seg->data.seg_type;
+
+        if(seg_tp != FPL_SEG_ENRT)
+            return ASSUMED_RNP_PROC_NM;
+
+        return ASSUMED_RNP_ENRT_NM;
+    }
 
     // FplnInt member functions:
     // Public functions:
@@ -824,7 +831,6 @@ namespace test
 
     void FplnInt::update(double hdg_trk_diff)
     {
-        (void)hdg_trk_diff;
         std::lock_guard<std::mutex> lock(fpl_mtx);
         if(fpl_id_calc != fpl_id_curr)
         {
@@ -859,6 +865,13 @@ namespace test
                         leg_curr->data.leg.leg_type = "DF";
                     }
                 }
+
+                if(!leg_curr->data.is_calculated && !leg_curr->data.is_discon)
+                {
+                    calculate_leg(leg_curr, hdg_trk_diff);
+                    leg_curr->data.is_calculated =  true;
+                }
+                
                 leg_curr = next_leg;
             }
             fpl_id_calc = fpl_id_curr;
@@ -1460,15 +1473,134 @@ namespace test
         return false;
     }
 
-    geo::point FplnInt::get_leg_start(leg_seg_t curr_seg, leg_t next)
+    geo::point FplnInt::get_leg_start(leg_seg_t curr_seg, leg_t curr_leg, leg_t next)
     {
+        if(curr_leg.leg_type == "IF")
+        {
+            return curr_leg.main_fix.data.pos;
+        }
         if(TURN_OFFS_LEGS.find(next.leg_type) != TURN_OFFS_LEGS.end())
         {
+            double brng1 = curr_seg.end.get_gc_bearing_rad(curr_seg.start);
             if(next.leg_type == "DF")
             {
-                
+                geo::point p1 = geo::get_pos_from_brng_dist(curr_seg.end, brng1 + M_PI/2, 
+                    TURN_RADIUS_NM);
+                geo::point p2 = geo::get_pos_from_brng_dist(curr_seg.end, brng1 - M_PI/2, 
+                    TURN_RADIUS_NM);
+
+                geo::point next_point = next.main_fix.data.pos;
+                double dist1 = next_point.get_gc_dist_nm(p1);
+                double dist2 = next_point.get_gc_dist_nm(p2);
+
+                if(dist1 < dist2)
+                {
+                    if(dist1 == 0)
+                    {
+                        return curr_seg.end;
+                    }
+                    double theta = acos(TURN_RADIUS_NM / dist1);
+                    double ang_main = p1.get_gc_bearing_rad(next_point);
+                    double ang_end = p1.get_gc_bearing_rad(curr_seg.end);
+                    double ang_doub = ang_end - ang_main - theta;
+                    if(ang_doub < 0)
+                    {
+                        ang_doub += 2 * M_PI;
+                    }
+
+                    if(ang_doub / 2 != M_PI / 2)
+                    {
+                        double offs_nm = TURN_RADIUS_NM * tan(ang_doub / 2);
+                        return geo::get_pos_from_brng_dist(curr_seg.end, brng1 + M_PI, offs_nm);
+                    }
+                    else
+                    {
+                        return geo::get_pos_from_brng_dist(p1, brng1 + M_PI/2, 
+                            TURN_RADIUS_NM);
+                    }
+                }
+                else
+                {
+                    if(dist2 == 0)
+                    {
+                        return curr_seg.end;
+                    }
+                    double theta = acos(TURN_RADIUS_NM / dist2);
+                    double ang_main = p1.get_gc_bearing_rad(next_point);
+                    double ang_end = p1.get_gc_bearing_rad(curr_seg.end);
+                    double ang_doub = ang_main - theta - ang_end;
+                    if(ang_doub < 0)
+                    {
+                        ang_doub += 2 * M_PI;
+                    }
+
+                    if(ang_doub / 2 != M_PI / 2)
+                    {
+                        double offs_nm = TURN_RADIUS_NM * tan(ang_doub / 2);
+                        return geo::get_pos_from_brng_dist(curr_seg.end, brng1 + M_PI, offs_nm);
+                    }
+                    else
+                    {
+                        return geo::get_pos_from_brng_dist(p1, brng1 - M_PI/2, 
+                            TURN_RADIUS_NM);
+                    }
+                }
+            }
+            else
+            {
+                double crs_rad = double(next.outbd_crs_deg) * geo::DEG_TO_RAD;
+                if(next.leg_type[0] == 'C')
+                    crs_rad += next.get_mag_var_deg() * geo::DEG_TO_RAD;
+                double turn_rad = crs_rad - brng1;
+                if(turn_rad > M_PI)
+                {
+                    turn_rad = 2 * M_PI - turn_rad;
+                }
+                else if(turn_rad < -M_PI)
+                {
+                    turn_rad += 2 * M_PI;
+                }
+                double theta = turn_rad / 2;
+                double sin_theta = sin(theta);
+                double cos_theta = cos(theta);
+                if(sin_theta != 0 && cos_theta != 0)
+                {
+                    double offs_nm = TURN_RADIUS_NM * cos_theta / sin_theta;
+                    assert(offs_nm >= 0);
+
+                    return geo::get_pos_from_brng_dist(curr_seg.end, brng1 + M_PI, offs_nm);
+                }
             }
         }
+        else if(next.leg_type == "TF")
+        {
+            return curr_leg.main_fix.data.pos;
+        }
+        else if(next.leg_type == "CF")
+        {
+            if(curr_leg.has_main_fix)
+            {
+                return curr_leg.main_fix.data.pos;
+            }
+            else
+            {
+                double outbd_brng_deg = double(next.outbd_crs_deg) + 
+                    next.get_mag_var_deg();
+                double inbd_brng_rad = outbd_brng_deg * geo::DEG_TO_RAD + M_PI;
+                double curr_brng = curr_seg.start.get_gc_bearing_rad(curr_seg.end);
+
+                geo::point intc = geo::get_pos_from_intc(curr_seg.start, 
+                    next.main_fix.data.pos, curr_brng, inbd_brng_rad);
+                
+                return intc;
+            }
+        }
+        else if(next.leg_type[0] == 'F')
+        {
+            return next.main_fix.data.pos;
+        }
+
+        return curr_seg.end;
     }
 
     void FplnInt::calculate_leg(leg_list_node_t *leg, double hdg_trk_diff)
@@ -1478,7 +1610,6 @@ namespace test
         if(curr_arinc_leg.leg_type == "IF")
         {
             geo::point main_fix_pos = curr_arinc_leg.main_fix.data.pos;
-            leg->next->data.misc_data.start = main_fix_pos;
             leg->data.misc_data.is_arc = false;
             leg->data.misc_data.is_finite = true;
             leg->data.misc_data.start = main_fix_pos;
@@ -1518,8 +1649,24 @@ namespace test
             leg->data.leg.main_fix = end_wpt;
             leg->data.leg.outbd_dist_time = curr_arinc_leg.alt1_ft / float(CLB_RATE_FT_PER_NM);
             leg->data.leg.outbd_dist_as_time = false;
-
-
         }
+        else if(curr_arinc_leg.leg_type == "TF" || curr_arinc_leg.leg_type == "CF" || 
+            curr_arinc_leg.leg_type == "DF")
+        {
+            geo::point curr_start = leg->data.misc_data.start;
+            geo::point curr_end = curr_arinc_leg.main_fix.data.pos;
+
+            leg->data.misc_data.end = curr_arinc_leg.main_fix.data.pos;
+
+            if(curr_arinc_leg.leg_type != "CF")
+                leg->data.leg.outbd_crs_deg = float(curr_start.get_gc_bearing_rad(
+                    curr_end) * geo::RAD_TO_DEG);
+            
+            leg->data.leg.outbd_dist_time = curr_start.get_gc_dist_nm(curr_end);
+            leg->data.leg.outbd_dist_as_time = false;
+        }
+
+        leg->next->data.misc_data.start = get_leg_start(leg->data.misc_data, 
+            leg->data.leg, leg->next->data.leg);
     }
 } // namespace test

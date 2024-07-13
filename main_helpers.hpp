@@ -527,6 +527,14 @@ namespace test
                 }
                 double lat_deg = i.data.leg.main_fix.data.pos.lat_rad * geo::RAD_TO_DEG;
                 double lon_deg = i.data.leg.main_fix.data.pos.lon_rad * geo::RAD_TO_DEG;
+                if(i.data.leg.leg_type != "IF")
+                {
+                    float brng_deg = i.data.leg.outbd_crs_deg;
+                    float dist_nm = i.data.leg.outbd_dist_time;
+                    std::string brng_str = strutils::double_to_str(double(brng_deg), 6);
+                    std::string dist_str = strutils::double_to_str(double(dist_nm), 6);
+                    std::cout << brng_str << " " << dist_str << "\n";
+                }
                 std::string pos = strutils::double_to_str(lat_deg, 6) + " " + strutils::double_to_str(lon_deg, 6);
                 std::string misc_data = i.data.leg.main_fix.id + " " + i.data.leg.leg_type;
 
