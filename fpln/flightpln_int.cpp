@@ -1671,6 +1671,9 @@ namespace test
                 leg->data.leg.outbd_crs_deg = float(curr_start.get_gc_bearing_rad(
                     curr_end) * geo::RAD_TO_DEG);
             
+            if(leg->data.leg.outbd_crs_deg < 0)
+                leg->data.leg.outbd_crs_deg += 360;
+
             leg->data.leg.outbd_dist_time = curr_start.get_gc_dist_nm(curr_end);
             leg->data.leg.outbd_dist_as_time = false;
 
