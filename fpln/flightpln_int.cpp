@@ -1647,6 +1647,8 @@ namespace test
                 mag_var = hdg_trk_diff;
             }
 
+            leg->data.misc_data.true_trk_deg = curr_arinc_leg.outbd_crs_deg+mag_var;
+
             geo::point end_pt = get_xa_end_point(leg->data.misc_data.start, 
                 curr_arinc_leg.outbd_crs_deg+mag_var, curr_arinc_leg.alt1_ft, rwy_ent);
             libnav::waypoint_t end_wpt = get_ca_va_wpt(end_pt, int(curr_arinc_leg.alt1_ft));
@@ -1667,12 +1669,13 @@ namespace test
 
             leg->data.misc_data.end = curr_arinc_leg.main_fix.data.pos;
 
-            if(curr_arinc_leg.leg_type != "CF")
-                leg->data.leg.outbd_crs_deg = float(curr_start.get_gc_bearing_rad(
-                    curr_end) * geo::RAD_TO_DEG);
+            leg->data.misc_data.true_trk_deg = curr_start.get_gc_bearing_rad(
+                curr_end) * geo::RAD_TO_DEG;
             
-            if(leg->data.leg.outbd_crs_deg < 0)
-                leg->data.leg.outbd_crs_deg += 360;
+            if(leg->data.misc_data.true_trk_deg < 0)
+                leg->data.misc_data.true_trk_deg += 360;
+
+            leg->data.misc_data.true_trk_deg += curr_arinc_leg.get_mag_var_deg();
 
             leg->data.leg.outbd_dist_time = curr_start.get_gc_dist_nm(curr_end);
             leg->data.leg.outbd_dist_as_time = false;

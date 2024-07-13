@@ -64,7 +64,7 @@ namespace test
     {
         bool is_arc, is_finite;
         geo::point start, end;
-        double turn_rad_nm;
+        double turn_rad_nm, true_trk_deg;
     };
 
     struct nd_leg_data_t
