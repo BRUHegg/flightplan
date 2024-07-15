@@ -111,6 +111,9 @@ namespace test
 
             leg_sel_cdu_l = {0, 0};
             leg_sel_cdu_r = {0, 0};
+
+            n_act_seg_list_sz = 0;
+            n_act_leg_list_sz = 0;
         }
 
         std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
@@ -147,6 +150,29 @@ namespace test
         }
 
     private:
+        std::vector<list_node_ref_t<fpl_seg_t>> seg_list;
+        size_t n_act_seg_list_sz;
+        std::vector<list_node_ref_t<leg_list_data_t>> leg_list;
+        size_t n_act_leg_list_sz;
+
+
+        void update_seg_list()
+        {
+            size_t n_act_seg_list_sz = fpl->get_seg_list_sz();
+            seg_list_id = fpl->get_sl_seg(0, n_act_seg_list_sz, &seg_list);
+        }
+
+        void update_leg_list()
+        {
+            size_t n_act_leg_list_sz = fpl->get_seg_list_sz();
+            leg_list_id = fpl->get_ll_seg(0, n_act_leg_list_sz, &leg_list);
+        }
+
+        void update_lists()
+        {
+
+        }
+
         void update_pos()
         {
             bool lat_valid = strutils::is_numeric(env_vars["ac_lat"]);

@@ -87,11 +87,17 @@ namespace test
             i++;
         }
 
+        size_t cnt = 0;
+
         while(l && i < leg_list.size)
         {
-            out->push_back({curr, curr->data});
+            if(cnt >= out->size())
+                out->push_back({curr, curr->data});
+            else
+                out->at(cnt) = {curr, curr->data};
             l--;
             curr = curr->next;
+            cnt++;
         }
 
         return leg_list.id;
@@ -113,11 +119,17 @@ namespace test
             i++;
         }
 
+        size_t cnt = 0;
+
         while(l && i < seg_list.size)
         {
-            out->push_back({curr, curr->data});
+            if(cnt >= out->size())
+                out->push_back({curr, curr->data});
+            else
+                out->at(cnt) = {curr, curr->data};
             l--;
             curr = curr->next;
+            cnt++;
         }
 
         return seg_list.id;
