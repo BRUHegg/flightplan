@@ -1578,22 +1578,18 @@ namespace test
         }
         else if(next.leg_type == "CF")
         {
-            if(curr_leg.has_main_fix)
-            {
-                return curr_leg.main_fix.data.pos;
-            }
-            else
-            {
-                double outbd_brng_deg = double(next.outbd_crs_deg) + 
-                    next.get_mag_var_deg();
-                double inbd_brng_rad = outbd_brng_deg * geo::DEG_TO_RAD + M_PI;
-                double curr_brng = curr_seg.start.get_gc_bearing_rad(curr_seg.end);
+            double outbd_brng_deg = double(next.outbd_crs_deg);
+            
+            if(!next.outbd_crs_true)
+                outbd_brng_deg += next.get_mag_var_deg();
+            
+            double inbd_brng_rad = outbd_brng_deg * geo::DEG_TO_RAD + M_PI;
+            double curr_brng = curr_seg.start.get_gc_bearing_rad(curr_seg.end);
 
-                geo::point intc = geo::get_pos_from_intc(curr_seg.start, 
-                    next.main_fix.data.pos, curr_brng, inbd_brng_rad);
+            geo::point intc = geo::get_pos_from_intc(curr_seg.start, 
+                next.main_fix.data.pos, curr_brng, inbd_brng_rad);
                 
-                return intc;
-            }
+            return intc;
         }
         else if(next.leg_type[0] == 'F')
         {
@@ -1667,17 +1663,27 @@ namespace test
             geo::point curr_start = leg->data.misc_data.start;
             geo::point curr_end = curr_arinc_leg.main_fix.data.pos;
 
-            leg->data.misc_data.end = curr_arinc_leg.main_fix.data.pos;
+            double brng_rad = curr_start.get_gc_bearing_rad(curr_end);
+            double dist_nm = curr_start.get_gc_dist_nm(curr_end);
 
-            leg->data.misc_data.true_trk_deg = curr_start.get_gc_bearing_rad(
-                curr_end) * geo::RAD_TO_DEG;
+            double rnp_nm = get_rnp(leg);
+            double turn_offs_nm = sqrt((TURN_RADIUS_NM + rnp_nm) * 
+                (TURN_RADIUS_NM + rnp_nm) - TURN_RADIUS_NM * TURN_RADIUS_NM);
+
+            if(turn_offs_nm < dist_nm)
+            {
+                dist_nm -= turn_offs_nm;
+                curr_end = geo::get_pos_from_brng_dist(curr_start, brng_rad, dist_nm);
+            }
+
+            leg->data.misc_data.end = curr_end;
+
+            leg->data.misc_data.true_trk_deg = brng_rad * geo::RAD_TO_DEG;
             
             if(leg->data.misc_data.true_trk_deg < 0)
                 leg->data.misc_data.true_trk_deg += 360;
 
-            leg->data.misc_data.true_trk_deg += curr_arinc_leg.get_mag_var_deg();
-
-            leg->data.leg.outbd_dist_time = curr_start.get_gc_dist_nm(curr_end);
+            leg->data.leg.outbd_dist_time = dist_nm;
             leg->data.leg.outbd_dist_as_time = false;
 
             leg->data.misc_data.is_arc = false;
