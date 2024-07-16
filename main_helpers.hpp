@@ -184,14 +184,14 @@ namespace test
             if(bwd)
             {
                 if(*curr_idx)
-                    *curr_idx--;
+                    *curr_idx = *curr_idx - 1;
                 else
                     *curr_idx = n_act_leg_list_sz;
             }
             else
             {
                 if(*curr_idx < n_act_leg_list_sz)
-                    *curr_idx++;
+                    *curr_idx = *curr_idx + 1;
                 else
                     *curr_idx = 0;
             }
