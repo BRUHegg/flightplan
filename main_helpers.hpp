@@ -115,6 +115,9 @@ namespace test
             n_act_seg_list_sz = 0;
             n_act_leg_list_sz = 0;
 
+            cap_ctr_idx = 0;
+            fo_ctr_idx = 0;
+
             fpl_id_last = 0;
         }
 
@@ -128,6 +131,70 @@ namespace test
         {
             *sz = n_act_leg_list_sz;
             return leg_list;
+        }
+
+        size_t get_nd_seg(nd_leg_data_t *out, size_t n_max)
+        {
+            size_t n_written = 0;
+            for(size_t i = 0; i < n_act_leg_list_sz; i++)
+            {
+                if(!n_max)
+                    return n_written;
+                
+                nd_leg_data_t tmp;
+                tmp.leg_data = leg_list[i].data.misc_data;
+                tmp.arc_ctr = leg_list[i].data.leg.center_fix.data.pos;
+                tmp.end_name = leg_list[i].data.leg.main_fix.id;
+                out[i] = tmp;
+
+                n_max--;
+            }
+        }
+
+        bool get_ctr(geo::point *out, bool fo_side)
+        {
+            size_t curr_idx = cap_ctr_idx;
+
+            if(fo_side)
+                curr_idx = fo_ctr_idx;
+
+            if(curr_idx < n_act_leg_list_sz)
+            {
+                bool has_pos = leg_list[curr_idx].data.leg.has_main_fix;
+                if(has_pos)
+                {
+                    *out = leg_list[curr_idx].data.leg.main_fix.data.pos;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void step_ctr(bool bwd, bool fo_side)
+        {
+            if(!n_act_leg_list_sz)
+                return;
+            
+            size_t *curr_idx = &cap_ctr_idx;
+
+            if(fo_side)
+                curr_idx = &fo_ctr_idx;
+
+            if(bwd)
+            {
+                if(*curr_idx)
+                    *curr_idx--;
+                else
+                    *curr_idx = n_act_leg_list_sz;
+            }
+            else
+            {
+                if(*curr_idx < n_act_leg_list_sz)
+                    *curr_idx++;
+                else
+                    *curr_idx = 0;
+            }
         }
 
         void update()
@@ -152,6 +219,8 @@ namespace test
         size_t n_act_seg_list_sz;
         std::vector<list_node_ref_t<leg_list_data_t>> leg_list;
         size_t n_act_leg_list_sz;
+
+        size_t cap_ctr_idx, fo_ctr_idx;
         double fpl_id_last;
 
 
@@ -165,6 +234,16 @@ namespace test
         {
             n_act_leg_list_sz = fpl->get_leg_list_sz();
             leg_list_id = fpl->get_ll_seg(0, n_act_leg_list_sz, &leg_list);
+
+            if(cap_ctr_idx >= n_act_leg_list_sz && n_act_leg_list_sz != 0)
+            {
+                cap_ctr_idx = n_act_leg_list_sz-1;
+            }
+
+            if(fo_ctr_idx >= n_act_leg_list_sz && n_act_leg_list_sz != 0)
+            {
+                fo_ctr_idx = n_act_leg_list_sz-1;
+            }
         }
 
         void update_lists()

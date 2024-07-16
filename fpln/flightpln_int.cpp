@@ -868,10 +868,9 @@ namespace test
                     }
                 }
 
-                if(!leg_curr->data.is_calculated && !leg_curr->data.is_discon)
+                if(!leg_curr->data.is_discon)
                 {
                     calculate_leg(leg_curr, hdg_trk_diff);
-                    leg_curr->data.is_calculated =  true;
                 }
                 
                 leg_curr = next_leg;
@@ -1654,8 +1653,10 @@ namespace test
             leg->data.misc_data.is_arc = false;
             leg->data.misc_data.is_finite = true;
             leg->data.misc_data.end = end_pt;
+            leg->data.misc_data.turn_rad_nm = TURN_RADIUS_NM;
 
             leg->data.leg.main_fix = end_wpt;
+            leg->data.leg.has_main_fix = true;
             leg->data.leg.outbd_dist_time = curr_arinc_leg.alt1_ft / float(CLB_RATE_FT_PER_NM);
             leg->data.leg.outbd_dist_as_time = false;
         }
@@ -1669,8 +1670,9 @@ namespace test
             double dist_nm = curr_start.get_gc_dist_nm(curr_end);
 
             double rnp_nm = get_rnp(leg);
-            double turn_offs_nm = sqrt((TURN_RADIUS_NM + rnp_nm) * 
-                (TURN_RADIUS_NM + rnp_nm) - TURN_RADIUS_NM * TURN_RADIUS_NM);
+            double turn_rad_nm = TURN_RADIUS_NM;
+            double turn_offs_nm = sqrt((turn_rad_nm + rnp_nm) * 
+                (turn_rad_nm + rnp_nm) - turn_rad_nm * turn_rad_nm);
 
             if(turn_offs_nm < dist_nm)
             {
@@ -1691,6 +1693,13 @@ namespace test
             leg->data.misc_data.is_arc = false;
             leg->data.misc_data.is_finite = true;
             leg->data.misc_data.end = curr_end;
+            leg->data.misc_data.turn_rad_nm = turn_rad_nm;
+        }
+        else
+        {
+            leg->data.misc_data.is_arc = false;
+            leg->data.misc_data.is_finite = false;
+            leg->data.misc_data.turn_rad_nm = -1;
         }
 
         if(leg->data.misc_data.true_trk_deg > 360)

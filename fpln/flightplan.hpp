@@ -90,7 +90,6 @@ namespace test
     {
         leg_t leg;
         bool is_discon;
-        bool is_calculated=false;
         leg_seg_t misc_data;
         struct_util::list_node_t<fpl_seg_t> *seg;
     };
