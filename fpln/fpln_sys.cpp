@@ -70,17 +70,19 @@ namespace test
 
     size_t FPLSys::get_nd_seg(nd_leg_data_t *out, size_t n_max)
     {
+        if(n_act_leg_list_sz == 0)
+            return 0;
         size_t n_written = 0;
-        for (size_t i = 0; i < n_act_leg_list_sz; i++)
+        for (size_t i = 1; i < n_act_leg_list_sz-1; i++)
         {
             if (!n_max)
                 return n_written;
 
             nd_leg_data_t tmp;
-            tmp.leg_data = leg_list[i].data.misc_data;
-            tmp.arc_ctr = leg_list[i].data.leg.center_fix.data.pos;
-            tmp.end_name = leg_list[i].data.leg.main_fix.id;
-            out[i] = tmp;
+            tmp.leg_data = leg_list[n_written].data.misc_data;
+            tmp.arc_ctr = leg_list[n_written].data.leg.center_fix.data.pos;
+            tmp.end_name = leg_list[n_written].data.leg.main_fix.id;
+            out[n_written] = tmp;
 
             n_max--;
             n_written++;
@@ -91,7 +93,7 @@ namespace test
 
     bool FPLSys::get_ctr(geo::point *out, bool fo_side)
     {
-        size_t curr_idx = cap_ctr_idx;
+        size_t curr_idx = cap_ctr_idx+1;
 
         if (fo_side)
             curr_idx = fo_ctr_idx;
@@ -111,7 +113,7 @@ namespace test
 
     geo::point FPLSys::get_ac_pos()
     {
-        return {ac_lat, ac_lon};
+        return {ac_lat * geo::DEG_TO_RAD, ac_lon * geo::DEG_TO_RAD};
     }
 
     void FPLSys::step_ctr(bool bwd, bool fo_side)
@@ -129,11 +131,11 @@ namespace test
             if (*curr_idx)
                 *curr_idx = *curr_idx - 1;
             else
-                *curr_idx = n_act_leg_list_sz;
+                *curr_idx = n_act_leg_list_sz-1;
         }
         else
         {
-            if (*curr_idx < n_act_leg_list_sz)
+            if (*curr_idx < n_act_leg_list_sz-1)
                 *curr_idx = *curr_idx + 1;
             else
                 *curr_idx = 0;
