@@ -164,6 +164,8 @@ namespace test
         FlightPlan(std::shared_ptr<libnav::ArptDB> apt_db, 
             std::shared_ptr<libnav::NavaidDB> nav_db, std::string cifp_path);
 
+        double get_id();
+
         size_t get_leg_list_sz();
 
         size_t get_seg_list_sz();
@@ -217,6 +219,8 @@ namespace test
         double fpl_id_curr;
 
 
+        void update_id();
+
         bool legcmp(leg_t& leg1, leg_t& leg2);
 
         libnav::DbErr set_arpt(std::string icao, libnav::Airport **ptr, bool is_arr=false);
@@ -264,8 +268,6 @@ namespace test
         
         std::string cifp_dir_path;
 
-
-        void update_id();
 
         // WARNING: these do not lock flight plan mutex
         void reset_fpln(bool leave_dep_rwy=false);

@@ -630,6 +630,7 @@ namespace test
                             seg_add->data.is_discon = false;
                             seg_add->data.end = nullptr;
                             seg_list.insert_before(&(seg_list.tail), seg_add);
+                            update_id();
 
                             return true;
                         }
@@ -685,6 +686,7 @@ namespace test
                             seg_add->data.is_discon = false;
                             seg_add->data.end = nullptr;
                             seg_list.insert_before(base_seg->next, seg_add);
+                            update_id();
 
                             return true;
                         }

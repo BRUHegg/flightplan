@@ -61,6 +61,11 @@ namespace test
         fpl_id_curr = 0;
     }
 
+    double FlightPlan::get_id()
+    {
+        return fpl_id_curr;
+    }
+
     size_t FlightPlan::get_leg_list_sz()
     {
         return leg_list.size;
@@ -154,6 +159,13 @@ namespace test
     }
 
     // Protected member functions:
+
+    void FlightPlan::update_id()
+    {
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<double> dur = now - start;
+        fpl_id_curr = dur.count();
+    }
 
     bool FlightPlan::legcmp(leg_t& leg1, leg_t& leg2)
     {
@@ -445,13 +457,6 @@ namespace test
     }
 
     // Private member functions:
-
-    void FlightPlan::update_id()
-    {
-        auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> dur = now - start;
-        fpl_id_curr = dur.count();
-    }
 
     void FlightPlan::reset_fpln(bool leave_dep_rwy)
     {

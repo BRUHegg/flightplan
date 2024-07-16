@@ -114,30 +114,28 @@ namespace test
 
             n_act_seg_list_sz = 0;
             n_act_leg_list_sz = 0;
+
+            fpl_id_last = 0;
         }
 
-        std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list()
+        std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list(size_t *sz)
         {
-            std::vector<list_node_ref_t<fpl_seg_t>> scr_data;
-            size_t seg_sz = fpl->get_seg_list_sz();
-            seg_list_id = fpl->get_sl_seg(0, seg_sz, &scr_data);
-
-            return scr_data;
+            *sz = n_act_seg_list_sz;
+            return seg_list;
         }
 
-        std::vector<list_node_ref_t<leg_list_data_t>> get_legs_list()
+        std::vector<list_node_ref_t<leg_list_data_t>> get_leg_list(size_t *sz)
         {
-            std::vector<list_node_ref_t<leg_list_data_t>> scr_data;
-            size_t legs_sz = fpl->get_leg_list_sz();
-            leg_list_id = fpl->get_ll_seg(0, legs_sz, &scr_data);
-
-            return scr_data;
+            *sz = n_act_leg_list_sz;
+            return leg_list;
         }
 
         void update()
         {
             update_pos();
             fpl->update(0);
+
+            update_lists();
         }
 
         ~Avionics()
@@ -154,23 +152,31 @@ namespace test
         size_t n_act_seg_list_sz;
         std::vector<list_node_ref_t<leg_list_data_t>> leg_list;
         size_t n_act_leg_list_sz;
+        double fpl_id_last;
 
 
         void update_seg_list()
         {
-            size_t n_act_seg_list_sz = fpl->get_seg_list_sz();
+            n_act_seg_list_sz = fpl->get_seg_list_sz();
             seg_list_id = fpl->get_sl_seg(0, n_act_seg_list_sz, &seg_list);
         }
 
         void update_leg_list()
         {
-            size_t n_act_leg_list_sz = fpl->get_seg_list_sz();
+            n_act_leg_list_sz = fpl->get_leg_list_sz();
             leg_list_id = fpl->get_ll_seg(0, n_act_leg_list_sz, &leg_list);
         }
 
         void update_lists()
         {
-
+            double fpl_id_curr = fpl->get_id();
+            if(fpl_id_curr != fpl_id_last)
+            {
+                update_seg_list();
+                update_leg_list();
+            }
+                    
+            fpl_id_last = fpl_id_curr;
         }
 
         void update_pos()
@@ -542,12 +548,13 @@ namespace test
         if(in[0] != "1" && in[0] != "2")
             return;
 
-        auto legs = av->get_legs_list();
+        size_t n_legs;
+        auto legs = av->get_leg_list(&n_legs);
 
         size_t cnt = 0;
         for(auto i: legs)
         {
-            if(cnt && cnt < size_t(legs.size()-1))
+            if(cnt && cnt < size_t(n_legs-1))
             {
                 std::cout << cnt-1 << ". ";
                 if(i.data.is_discon)
@@ -586,10 +593,11 @@ namespace test
         }
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        auto segs = av->get_seg_list();
+        size_t n_segs;
+        auto segs = av->get_seg_list(&n_segs);
 
         seg_list_node_t *s_ptr = nullptr;
-        if(idx < segs.size())
+        if(idx < n_segs)
         {
             s_ptr = segs[idx].ptr;
         }
@@ -611,10 +619,11 @@ namespace test
         }
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        auto segs = av->get_seg_list();
+        size_t n_segs;
+        auto segs = av->get_seg_list(&n_segs);
 
         seg_list_node_t *s_ptr = nullptr;
-        if(idx < segs.size())
+        if(idx < n_segs)
         {
             s_ptr = segs[idx].ptr;
         }
@@ -650,10 +659,11 @@ namespace test
         }
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        auto segs = av->get_seg_list();
+        size_t n_segs;
+        auto segs = av->get_seg_list(&n_segs);
 
         seg_list_node_t *s_ptr = nullptr;
-        if(idx < segs.size())
+        if(idx < n_segs)
         {
             s_ptr = segs[idx].ptr;
         }
@@ -676,7 +686,8 @@ namespace test
         }
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]));
-        auto segs = av->get_seg_list();
+        size_t n_segs;
+        auto segs = av->get_seg_list(&n_segs);
 
         seg_list_node_t *s_ptr = nullptr;
         if(idx < segs.size())
@@ -704,9 +715,10 @@ namespace test
             return;
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]))+1;
-        auto legs = av->get_legs_list();
+        size_t n_legs;
+        auto legs = av->get_leg_list(&n_legs);
 
-        if(idx >= legs.size())
+        if(idx >= n_legs)
         {
             std::cout << "Index out of range\n";
             return;
@@ -748,7 +760,7 @@ namespace test
 
                 av->fpl->add_direct({in[3], tgt}, {legs[idx].ptr, av->leg_list_id});
             }
-            else if(idx < legs.size()-1)
+            else if(idx < n_legs-1)
             {
                 leg_list_node_t *leg_ptr = legs[idx].ptr;
                 if(!leg_ptr->data.is_discon)
@@ -758,7 +770,7 @@ namespace test
                 }
             }
         }
-        else if(idx < legs.size()-1)
+        else if(idx < n_legs-1)
         {
             size_t from = idx;
             size_t to = ptr->first;
@@ -766,7 +778,7 @@ namespace test
             {
                 if(from > to)
                 {
-                    if(from+1 < legs.size())
+                    if(from+1 < n_legs)
                         from++;
                     std::swap(from, to);
                 }
@@ -791,9 +803,10 @@ namespace test
         }
 
         size_t idx = size_t(strutils::stoi_with_strip(in[0]))+1;
-        auto legs = av->get_legs_list();
+        size_t n_legs;
+        auto legs = av->get_leg_list(&n_legs);
 
-        if(idx >= legs.size()-1)
+        if(idx >= n_legs-1)
         {
             std::cout << "Index out of range\n";
             return;
@@ -815,17 +828,20 @@ namespace test
             return;
         }
 
-        auto segs = av->get_seg_list();
+        size_t n_segs;
+        auto segs = av->get_seg_list(&n_segs);
 
-        for(auto i: segs)
+        for(size_t i = 0; i < n_segs; i++)
         {
-            leg_list_node_t *end_leg = i.data.end;
+            auto curr_sg = segs[i];
+            leg_list_node_t *end_leg = curr_sg.data.end;
             std::string end_nm = "";
             if(end_leg != nullptr)
             {
                 end_nm = end_leg->data.leg.main_fix.id;
             }
-            std::cout << i.data.name << " " << end_nm << " " << i.data.seg_type << "\n";
+            std::cout << curr_sg.data.name << " " << end_nm << " " 
+                << curr_sg.data.seg_type << "\n";
         }
     }
 
