@@ -33,7 +33,6 @@ namespace test
     };
 
     constexpr size_t N_PROC_DB_SZ = 5;
-    constexpr size_t N_LEG_SEG_BUF_SZ = 400;
     constexpr size_t N_ARR_DB_OFFSET = 2;
     constexpr size_t N_DFMS_ENRT_WORDS = 6;
     constexpr double DEFAULT_VS_FPM = 2000;
@@ -178,8 +177,6 @@ namespace test
 
         void update(double hdg_trk_diff);
 
-        ~FplnInt();
-
     private:
         std::string arr_rwy;
 
@@ -191,9 +188,6 @@ namespace test
         libnav::runway_entry_t dep_rnw_data, arr_rnw_data;
 
         double fpl_id_calc;
-
-        leg_seg_t *leg_seg_buf;
-        size_t n_leg_seg;
 
 
         // Static member functions:

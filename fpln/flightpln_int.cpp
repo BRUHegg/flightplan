@@ -108,10 +108,6 @@ namespace test
         proc_db.resize(N_PROC_DB_SZ);
 
         fpl_id_calc = 0;
-
-
-        leg_seg_buf = new leg_seg_t[N_LEG_SEG_BUF_SZ];
-        n_leg_seg = 0;
     }
 
     libnav::DbErr FplnInt::load_from_fms(std::string& file_nm, bool set_arpts)
@@ -877,11 +873,6 @@ namespace test
             }
             fpl_id_calc = fpl_id_curr;
         }
-    }
-
-    FplnInt::~FplnInt()
-    {
-        delete[] leg_seg_buf;
     }
 
     // Private functions:
