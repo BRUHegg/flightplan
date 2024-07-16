@@ -1,4 +1,5 @@
 #include "main_helpers.hpp"
+#include "fpln/fpl_cmds.hpp"
 
 
 int main()
@@ -60,7 +61,8 @@ int main()
 
 			if(test::cmd_map.find(cmd_name) != test::cmd_map.end())
 			{
-				test::cmd_map[cmd_name](&avncs, args);
+				test::FPLSys *ptr = avncs.fpl_sys.get();
+				test::cmd_map[cmd_name](ptr, args);
 			}
 			else
 			{
