@@ -108,6 +108,11 @@ namespace test
         return false;
     }
 
+    geo::point FPLSys::get_ac_pos()
+    {
+        return {ac_lat, ac_lon};
+    }
+
     void FPLSys::step_ctr(bool bwd, bool fo_side)
     {
         if (!n_act_leg_list_sz)

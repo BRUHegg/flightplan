@@ -62,6 +62,8 @@ namespace test
 
         bool get_ctr(geo::point *out, bool fo_side);
 
+        geo::point get_ac_pos();
+
         void step_ctr(bool bwd, bool fo_side);
 
         void update();
