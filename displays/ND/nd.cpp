@@ -90,6 +90,8 @@ namespace StratosphereAvionics
         if(fo_side)
             sz_ptr = &m_n_act_proj_legs_fo;
 
+        *sz_ptr = 0;
+
         bool out_of_rng = false;
         for(size_t i = 0; i < m_n_act_leg_data; i++)
         {
