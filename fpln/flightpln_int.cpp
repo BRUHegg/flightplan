@@ -1518,8 +1518,8 @@ namespace test
                         return curr_seg.end;
                     }
                     double theta = acos(TURN_RADIUS_NM / dist2);
-                    double ang_main = p1.get_gc_bearing_rad(next_point);
-                    double ang_end = p1.get_gc_bearing_rad(curr_seg.end);
+                    double ang_main = p2.get_gc_bearing_rad(next_point);
+                    double ang_end = p2.get_gc_bearing_rad(curr_seg.end);
                     double ang_doub = ang_main - theta - ang_end;
                     if(ang_doub < 0)
                     {
