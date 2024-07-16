@@ -68,7 +68,7 @@ namespace StratosphereAvionics
 
     void NDData::update_ctr(geo::point *ctr, bool fo_side)
     {
-        bool ret = m_fpl_sys_ptr->get_ctr(ctr, false);
+        bool ret = m_fpl_sys_ptr->get_ctr(ctr, fo_side);
         if(!ret)
         {
             *ctr = m_fpl_sys_ptr->get_ac_pos();

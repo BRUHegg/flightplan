@@ -1,5 +1,6 @@
 #include "main_helpers.hpp"
 #include "fpln/fpl_cmds.hpp"
+#include "displays/ND/nd.hpp"
 
 
 int main()
@@ -12,6 +13,9 @@ int main()
 		earth_nav_path+xp_ver+"earth_nav.dat", 
 		earth_nav_path+xp_ver+"earth_awy.dat", 
 		earth_nav_path+xp_ver+"earth_hold.dat", earth_nav_path+"CIFP");
+
+	StratosphereAvionics::NDData nd_data(avncs.fpl_sys);
+	
 	std::cout << "Avionics loaded\n";
 
 	std::vector<std::string> pre_exec = {
@@ -71,5 +75,6 @@ int main()
 		}
 
 		avncs.update();
+		nd_data.update();
 	}
 }
