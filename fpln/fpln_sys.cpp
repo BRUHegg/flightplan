@@ -83,6 +83,7 @@ namespace test
             out[i] = tmp;
 
             n_max--;
+            n_written++;
         }
 
         return n_written;
