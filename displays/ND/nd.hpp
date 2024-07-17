@@ -21,7 +21,7 @@ namespace StratosphereAvionics
 
     struct leg_proj_t
     {
-        geom_utils::vec2_t start, end, arc_ctr;
+        geom::vect2_t start, end, arc_ctr;
         bool is_arc, is_finite;
         double turn_rad_nm;
         std::string end_nm;

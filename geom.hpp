@@ -4,10 +4,15 @@
 #include <math.h>
 
 
-namespace geom_utils
+namespace geom
 {
-    struct vec2_t
+    struct vect2_t
     {
         double x, y;
     };
-} // namespace geom_utils
+
+    struct vect3_t
+    {   
+        double x, y, z;
+    };
+} // namespace geom
