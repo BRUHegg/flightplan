@@ -5,18 +5,78 @@
 #include <libnav/str_utils.hpp>
 
 const std::string CMD_FILE_NM = "cmds.txt";
+const std::string PREFS_FILE_NM = "prefs.txt";
+
+const std::string PREFS_EARTH_PATH = "EPATH";
+const std::string PREFS_APT_DIR = "APTDIR";
 
 
 int main()
 {
-    std::string earth_nav_path = "/home/betatest/Documents/programming/nav-test/test_data/";
-	std::string xp_ver = "xp12/";
+	std::string earth_nav_path = "";
+	std::string apt_dat_dir = "";
+
+	bool write_to_prefs = false;
+
+	if(libnav::does_file_exist(PREFS_FILE_NM))
+	{
+		std::ifstream file(PREFS_FILE_NM);
+
+		std::string line;
+		while(getline(file, line))
+		{
+			line = strutils::strip(line);
+			if(line.size() && line[0] != '#')
+			{
+				std::vector<std::string> str_split = strutils::str_split(line, ' ', 1);
+
+				if(str_split.size() == 2)
+				{
+					if(str_split[0] == PREFS_EARTH_PATH)
+						earth_nav_path = str_split[1];
+					else if(str_split[0] == PREFS_APT_DIR)
+						apt_dat_dir = str_split[1];
+				}
+			}
+		}
+
+		file.close();
+	}
+
+	if(earth_nav_path == "")
+	{
+		std::cout << "Please enter path to your Resources/default data directory\n";
+		std::getline(std::cin, earth_nav_path);
+
+		write_to_prefs = true;
+	}
+
+	if(apt_dat_dir == "")
+	{
+		std::cout << "Please enter path to the directory containing apt.dat\n";
+		std::getline(std::cin, apt_dat_dir);
+
+		write_to_prefs = true;
+	}
+
+	if(write_to_prefs)
+	{
+		std::ofstream out(PREFS_FILE_NM, std::ofstream::out);
+
+		out << PREFS_EARTH_PATH << " " << earth_nav_path << "\n";
+		out << PREFS_APT_DIR << " " << apt_dat_dir << "\n";
+
+		out.close();
+	}
+
+    //std::string earth_nav_path = "/home/betatest/Documents/programming/nav-test/test_data/";
+	//std::string xp_ver = "xp12/";
     
-    test::Avionics avncs(earth_nav_path+xp_ver+"apt.dat", earth_nav_path+xp_ver+"777_arpt.dat", 
-		earth_nav_path+xp_ver+"777_rnw.dat", earth_nav_path+xp_ver+"earth_fix.dat", 
-		earth_nav_path+xp_ver+"earth_nav.dat", 
-		earth_nav_path+xp_ver+"earth_awy.dat", 
-		earth_nav_path+xp_ver+"earth_hold.dat", earth_nav_path+"CIFP");
+    test::Avionics avncs(apt_dat_dir+"apt.dat", "777_arpt.dat", 
+		"777_rnw.dat", earth_nav_path+"earth_fix.dat", 
+		earth_nav_path+"earth_nav.dat", 
+		earth_nav_path+"earth_awy.dat", 
+		earth_nav_path+"earth_hold.dat", earth_nav_path+"CIFP");
 
 	StratosphereAvionics::NDData nd_data(avncs.fpl_sys);
 	
@@ -35,6 +95,8 @@ int main()
 			if(line.size() && line[0] != '#')
 				pre_exec.push_back(line);
 		}
+
+		file.close();
 	}
 
 	size_t i = 0;
