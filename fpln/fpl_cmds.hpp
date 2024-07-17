@@ -12,6 +12,7 @@
 #pragma once
 
 #include "fpln_sys.hpp"
+#include <libnav/str_utils.hpp>
 
 
 namespace test

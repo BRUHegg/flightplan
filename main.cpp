@@ -2,6 +2,7 @@
 #include "fpln/fpl_cmds.hpp"
 #include "displays/ND/nd.hpp"
 #include <libnav/common.hpp>
+#include <libnav/str_utils.hpp>
 
 const std::string CMD_FILE_NM = "cmds.txt";
 
@@ -30,6 +31,7 @@ int main()
 		std::string line;
 		while(getline(file, line))
 		{
+			line = strutils::strip(line);
 			if(line.size() && line[0] != '#')
 				pre_exec.push_back(line);
 		}
