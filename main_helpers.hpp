@@ -91,4 +91,17 @@ namespace test
             arpt_db_ptr.reset();
         }
     };
+
+
+    //class CMDInterface
+    //{
+    //public:
+    //    CMDInterface()
+    //    {
+    //
+    //    }
+    //
+    //private:
+    //    std::shared_ptr<Avionics> avncs;
+    //};
 }

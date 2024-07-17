@@ -1,6 +1,9 @@
 #include "main_helpers.hpp"
 #include "fpln/fpl_cmds.hpp"
 #include "displays/ND/nd.hpp"
+#include <libnav/common.hpp>
+
+const std::string CMD_FILE_NM = "cmds.txt";
 
 
 int main()
@@ -18,24 +21,19 @@ int main()
 	
 	std::cout << "Avionics loaded\n";
 
-	std::vector<std::string> pre_exec = {
-		"setdep EGHH",
-		"setarr LFML",
-		"setdeprwy 26",
-		"setproc 0 EAST DEP PROC",
-		"setproc 0 GWC DEP TRANS",
-		"legset 5 L L BENBO",
-		"addvia 6 UL612",
-		"addto 6 RESMI",
-		"legset 11 L L UTUVA",
-		"legset 12 L L LERGA",
-		"setproc 2 RNV31LZ ARR PROC",
-		"setproc 1 LERG1D ARR PROC"
-		//"setdep ESSA",
-		//"setarr EDDF",
-		//"load"
-	};
-	//pre_exec = {};
+	std::vector<std::string> pre_exec = {};
+
+	if(libnav::does_file_exist(CMD_FILE_NM))
+	{
+		std::ifstream file(CMD_FILE_NM);
+
+		std::string line;
+		while(getline(file, line))
+		{
+			if(line.size() && line[0] != '#')
+				pre_exec.push_back(line);
+		}
+	}
 
 	size_t i = 0;
 
