@@ -27,6 +27,7 @@ namespace test
     class FPLSys
     {
     public:
+        // These are used by commands
         double ac_lat;
         double ac_lon;
 
@@ -48,11 +49,13 @@ namespace test
         std::unordered_map<std::string, std::string> env_vars;
 
         std::string cifp_dir_path;
+        std::string fpl_dir;
 
 
         FPLSys(std::shared_ptr<libnav::ArptDB> arpt_db, 
             std::shared_ptr<libnav::NavaidDB> navaid_db, 
-            std::shared_ptr<libnav::AwyDB> awy_db, std::string cifp_path);
+            std::shared_ptr<libnav::AwyDB> awy_db, std::string cifp_path, 
+            std::string fpl_path);
 
         std::vector<list_node_ref_t<fpl_seg_t>> get_seg_list(size_t *sz);
 

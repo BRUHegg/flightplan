@@ -19,8 +19,8 @@ namespace test
     // Public member functions:
 
     FPLSys::FPLSys(std::shared_ptr<libnav::ArptDB> arpt_db,
-                   std::shared_ptr<libnav::NavaidDB> navaid_db,
-                   std::shared_ptr<libnav::AwyDB> awy_db, std::string cifp_path)
+        std::shared_ptr<libnav::NavaidDB> navaid_db,
+        std::shared_ptr<libnav::AwyDB> awy_db, std::string cifp_path, std::string fpl_path)
     {
         env_vars["ac_lat"] = strutils::double_to_str(AC_LAT_DEF, 8);
         env_vars["ac_lon"] = strutils::double_to_str(AC_LON_DEF, 8);
@@ -33,6 +33,7 @@ namespace test
         flt_trans = false;
 
         cifp_dir_path = cifp_path;
+        fpl_dir = fpl_path;
 
         ac_lat = AC_LAT_DEF;
         ac_lon = AC_LON_DEF;

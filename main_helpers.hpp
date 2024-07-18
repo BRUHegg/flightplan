@@ -19,6 +19,7 @@ namespace test
 
     const std::string PREFS_EARTH_PATH = "EPATH";
     const std::string PREFS_APT_DIR = "APTDIR";
+    const std::string PREFS_FPL_DIR = "FPLDIR";
 
 
     class Avionics
@@ -37,8 +38,7 @@ namespace test
 
         Avionics(std::string apt_dat, std::string custom_apt, std::string custom_rnw,
             std::string fix_data, std::string navaid_data, std::string awy_data,
-            std::string hold_data, 
-            std::string cifp_path)
+            std::string hold_data, std::string cifp_path, std::string fpl_path)
         {
 
             cifp_dir_path = cifp_path;
@@ -87,7 +87,7 @@ namespace test
             }
 
             fpl_sys = std::make_shared<FPLSys>(arpt_db_ptr, navaid_db_ptr, awy_db, 
-                cifp_dir_path);
+                cifp_dir_path, fpl_path);
         }
 
         void update()
@@ -173,6 +173,7 @@ namespace test
 
         std::string earth_nav_path;
 	    std::string apt_dat_dir;
+        std::string fpl_dir;
 
         std::vector<std::string> pre_exec;
 
@@ -197,6 +198,8 @@ namespace test
                                 earth_nav_path = str_split[1];
                             else if(str_split[0] == PREFS_APT_DIR)
                                 apt_dat_dir = str_split[1];
+                            else if(str_split[0] == PREFS_FPL_DIR)
+                                fpl_dir = str_split[1];
                         }
                     }
                 }
@@ -211,8 +214,19 @@ namespace test
 
             out << PREFS_EARTH_PATH << " " << earth_nav_path << "\n";
             out << PREFS_APT_DIR << " " << apt_dat_dir << "\n";
+            out << PREFS_FPL_DIR << " " << fpl_dir << "\n";
 
             out.close();
+        }
+
+        std::string get_path_from_user()
+        {
+            std::string out;
+            while(!out.size())
+                std::getline(std::cin, out);
+            if(out.back() != '/')
+                out += "/";
+            return out;
         }
 
         void get_paths_from_user()
@@ -222,7 +236,7 @@ namespace test
             if(earth_nav_path == "")
             {
                 std::cout << "Please enter path to your Resources/default data directory\n";
-                std::getline(std::cin, earth_nav_path);
+                earth_nav_path = get_path_from_user();
 
                 write_to_prefs = true;
             }
@@ -230,7 +244,15 @@ namespace test
             if(apt_dat_dir == "")
             {
                 std::cout << "Please enter path to the directory containing apt.dat\n";
-                std::getline(std::cin, apt_dat_dir);
+                apt_dat_dir = get_path_from_user();
+
+                write_to_prefs = true;
+            }
+
+            if(fpl_dir == "")
+            {
+                std::cout << "Please enter path to the directory where flight plans should be stored\n";
+                fpl_dir = get_path_from_user();
 
                 write_to_prefs = true;
             }
@@ -265,7 +287,7 @@ namespace test
                 "777_rnw.dat", earth_nav_path+"earth_fix.dat", 
                 earth_nav_path+"earth_nav.dat", 
                 earth_nav_path+"earth_awy.dat", 
-                earth_nav_path+"earth_hold.dat", earth_nav_path+"CIFP");
+                earth_nav_path+"earth_hold.dat", earth_nav_path+"CIFP", fpl_dir);
 
             nd_data = std::make_shared<StratosphereAvionics::NDData>(avncs->fpl_sys);
 
