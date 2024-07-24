@@ -31,6 +31,7 @@ namespace test
         PROC_TYPE_STAR = 1,
         PROC_TYPE_APPCH = 2
     };
+    
 
     constexpr size_t N_PROC_DB_SZ = 5;
     constexpr size_t N_ARR_DB_OFFSET = 2;
@@ -43,6 +44,7 @@ namespace test
     constexpr double ASSUMED_RNP_ENRT_NM = 3;
     const std::string NONE_TRANS = "NONE";
     const std::string MISSED_APPR_SEG_NM = "MISSED APPRCH";
+    const std::string INTC_LEG_NM = "(INTC)";
     // X-Plane .fms format stuff
     constexpr char DFMS_COL_SEP = ' ';
     constexpr uint8_t N_DFMS_OUT_PREC = 6;
@@ -65,10 +67,12 @@ namespace test
     const std::string DFMS_FILE_POSTFIX = ".fms";
 
     const std::set<std::string> NOT_FOLLOWED_BY_DF = {"AF", "CI", "PI", "RF", "VI"};
+    const std::set<std::string> AFTER_INTC = {"AF", "CF", "FA", "FC", "FD", "FM", "IF"};
     // The following set contains legs that allow to be offset by a turn(onto 
     /// the current leg)
     const std::set<std::string> TURN_OFFS_LEGS = {"DF", "CI", "CA", "CD", 
-        "CR", "VA", "VI", "VR"};  
+        "CR", "VA", "VI", "VR"};
+    const std::set<std::string> LEGS_CALC = {"DF", "TF", "CF", "VA", "CA", "VI", "CI"};
     //const std::map<std::string, std::set<std::string>> ILLEGAL_NEXT_LEG = {
     //    {"AF", {"DF", "IF", "PI"}},
     //    {"CA", {"AF", "HA", "HF", "HM", "PI", "RF", "TF"}},
@@ -85,6 +89,8 @@ namespace test
         std::string star, star_trans, arr_rwy, arr_icao;
     };
 
+
+    bool is_ang_greater(double ang1_rad, double ang2_rad);  // true if ang1 > ang2
 
     std::string get_appr_rwy(std::string& appr);
 
@@ -133,13 +139,13 @@ namespace test
 
         std::string get_dep_rwy();
 
-        libnav::runway_entry_t get_dep_rwy_data();
+        bool get_dep_rwy_data(libnav::runway_entry_t *out);
 
         bool set_arr_rwy(std::string& rwy);
 
         std::string get_arr_rwy();
 
-        libnav::runway_entry_t get_arr_rwy_data();
+        bool get_arr_rwy_data(libnav::runway_entry_t *out);
 
         // Airport procedure functions:
 
@@ -185,6 +191,7 @@ namespace test
         std::shared_ptr<libnav::NavaidDB> navaid_db;
 
         libnav::arinc_rwy_db_t dep_rnw, arr_rnw;
+        bool has_dep_rnw_data, has_arr_rnw_data;
         libnav::runway_entry_t dep_rnw_data, arr_rnw_data;
 
         double fpl_id_calc;
@@ -260,7 +267,7 @@ namespace test
 
         // Calculation functions:
 
-        geo::point get_leg_start(leg_seg_t curr_seg, leg_t curr_leg, leg_t next);
+        bool get_leg_start(leg_seg_t curr_seg, leg_t curr_leg, leg_t next, geo::point *out);
 
         void calculate_leg(leg_list_node_t *leg, double hdg_trk_diff);
     };

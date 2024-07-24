@@ -62,7 +62,7 @@ namespace test
 
     struct leg_seg_t
     {
-        bool is_arc, is_finite;
+        bool is_arc, is_finite, is_rwy;
         geo::point start, end;
         double turn_rad_nm, true_trk_deg;
     };
@@ -70,7 +70,7 @@ namespace test
     struct nd_leg_data_t
     {
         leg_seg_t leg_data;
-        geo::point arc_ctr;
+        geo::point arc_ctr, end_wpt;
         std::string end_name;
     };
 
